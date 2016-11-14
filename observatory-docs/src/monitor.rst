@@ -66,9 +66,11 @@ Internally, Observatory is accessed with a REST API. If we configure a system ca
          "from": "web-server",
          "to": "event-processor",
          "status": "OK",
+         "seen": 3,
+         "last": "2016-11-14T11:33:32+02:00",
+         "failed": "2016-11-12T17:22:32+02:00",
          "check": {
            "kind": "time",
-           "seen": 1,
            "expect": 1,
            "within": 10,
            "unit": "sec"
@@ -78,9 +80,11 @@ Internally, Observatory is accessed with a REST API. If we configure a system ca
          "from": "event-processor",
          "to": "journal",
          "status": "NOK",
+         "seen": 0,
+         "last": "2016-11-14T11:00:00+02:00"
+         "failed": "2016-11-14T11:33:32+02:00",
          "check": {
            "kind": "time",
-           "seen": 0,
            "expect": 1,
            "within": 500,
            "unit": "msec"
@@ -90,9 +94,11 @@ Internally, Observatory is accessed with a REST API. If we configure a system ca
          "from": "event-processor",
          "to": "database",
          "status": "WARN",
+         "seen": 1,
+         "last": "2016-11-14T12:00:00+02:00"
+         "failed": "2016-11-14T12:01:22+02:00",
          "check": {
            "kind": "countable",
-           "seen": 1,
            "expect": 1,
            "for": 3,
            "latency": 500,

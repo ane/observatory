@@ -27,29 +27,31 @@ this:
 
 .. graphviz:: 
     :caption: **A prototype of Observatory's user interface.** Yes, at this point, it's just a
-              Graphviz graph. The system in it has four nodes: ``web-server``, a root node,
-            ``event-processor``, ``journal``, and ``database``. For every ``web-server`` request, we expect
-            ``event-processor`` to have reacted within 10 seconds. For every ``event-processor`` request, we expect it at ``journal`` within 500
-            milliseconds. These are *temporal checks*. These are based on our own observations of
-            the system. For the ``database`` node we don't know, so we've set up a *quantitative*
-            check: for every 3 requests from its parent (``event-processor``), we expect ``1``
-            request there. This check is barely at the threshold, so it has a warning status.
+              Graphviz graph.
 
-    digraph foo {
+    digraph Example {
       A[label="web-server"];
       B[label="event-processor"];
       C[label="journal"];
       D[label="database"];
   
   
-      A->B[color="#00AA00",label="OK(seen=3,expect=1,within=10,unit=sec)"];
-      B->D[color="#AAAA00",label="WARN(seen=1,expect=1,for=3)"];
-      B->C[color="#AA0000",label="NOK(seen=0,expect=1,within=500,unit=msec)"];
+      A->B[color="#00AA00",label="OK(seen=3),\nCheck(expect=1,within=10,unit=sec)"];
+      B->D[color="#AAAA00",label="WARN(seen=1),\nCheck=(expect=1,for=3)"];
+      B->C[color="#AA0000",label="NOK(seen=0),\nCheck=(expect=1,within=500,unit=msec)"];
     }
 
+The system in it has four nodes: ``web-server``, a root node, ``event-processor``, ``journal``, and
+``database``. For every ``web-server`` request, we expect ``event-processor`` to have reacted within
+10 seconds. The ``seen`` value of 3 means this has happened three times. For every
+``event-processor`` request, we expect it at ``journal`` within 500 milliseconds. These are
+*temporal checks*. These are based on our own observations of the system. For the ``database`` node
+we don't know, so we've set up a *quantitative* check: for every 3 requests from its parent
+(``event-processor``), we expect ``1`` request there. This check is barely at the threshold, so it
+has a warning status.
+
 Think of it as what a logging server contains, but relevant parts visualized, and the
-visualization can be customized. Observatory can also be used to report changes in the system it is
-observing to another system, see 
+visualization can be customized. 
 
 Who is it for?
 ==============
@@ -62,7 +64,7 @@ case scenario is this:
 2. The cause is identified, messages are missing. Where's the broken link?
 3. Check Observatory if anything is broken.
 4. Observatory tells us the connection between ``event-processor`` and ``journal`` is broken, no events have been recorded for the requests the ``web-server`` component received.
-5. Identify the problem between ``event-processor`` and ``journal``.
+5. Investigate the problem between ``event-processor`` and ``journal``.
 
 How does it work?
 =================

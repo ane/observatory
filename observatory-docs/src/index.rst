@@ -27,7 +27,6 @@ Part I: Introduction
    introduction
    overview
    monitor
-   notifier
    configuration
 
 Part II: Architecture

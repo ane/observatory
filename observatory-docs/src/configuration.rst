@@ -141,23 +141,30 @@ An **edge** means communication between two nodes. It is configured thusly:
    from = "web-server"
    to = "event-processor"
 
+:name: A description of the edge
+:from: Edge start
+:to: Edge destination
+
 An edge without **health checks** is equal to not having been defined, because this doesn't really
 tell us what to look at. So for this we need health checks.
 
 Health checks
 ~~~~~~~~~~~~~
 
-
 Health checking a system can either be *temporal* or *countable*.  Temporal health checking means
 that data must flow in the stream under a certain time period. A quantitative health check on the
 other hand means that a certain amount of data must flow in the stream for every request.
 
+Health checks generally possess a *kind* and a *threshold*. The kind is what metrics are used to
+define the health check, and the threshold defines how many times the check must succeed or fail
+until a change is triggered.
+
 Temporal
 ********
 
-This is a *temporal health check*. A temporal health check can either be *edge-based* or *total*. If
-we have an edge ``(web-server,event-processor)``, we can define that if ``web-server`` receives a
-request, Journal must correlate it within ``N`` seconds (or any other time unit).
+A temporal health check can either be *edge-based* or *total*. If we have an edge
+``(web-server,event-processor)``, we can define that if ``web-server`` receives a request, Journal
+must correlate it within ``N`` seconds (or any other time unit).
 
 The syntax for a temporal health check is this:
 
@@ -173,7 +180,20 @@ The syntax for a temporal health check is this:
      expect = 1
      within = 500
      unit = msec
+     ok = 3         
+     warn = 0
+     nok = 1
 
+:kind: The kind of the check, either ``time`` for temporal checks, ``countable`` for countable
+       checks 
+:expect: How many events are expected within the check parameters
+:within: The time window
+:unit: The time unit (see :ref:`units`)
+:ok: *Optional* How many times the check must succeed before setting OK status (default: 1)
+:nok: *Optional* How many failures we allow before setting NOK status (default: 1)
+:warn: *Optional* How many failures we allow before setting WARN status (default: 0). **Note:** if
+       you set this field, Observatory will slap you if you set ``warn >= nok``.
+     
 Once data starts flowing, we get an output like this:
 
 .. graphviz::
@@ -189,9 +209,9 @@ Once data starts flowing, we get an output like this:
 A configuration like this can be defined between any two nodes in the graph, and there can be any
 number of them. The ``from`` and ``to`` fields are limited to the configured nodes.
 
-.. note:: 
+.. _units:
 
-   The following inputs are accepted for time units:
+.. table:: Accepted time units
 
    =========== ===========
    Unit        Accepted inputs
@@ -229,6 +249,19 @@ certain latency. So if the fourth request occurs, and we haven't received the re
      for = 3
      latency = 500
      unit = msec
+
+The countable health check has these parameters:
+
+:expect: How many messages are expected relative to a target node
+:for: The target node to which to compare ours. 
+:latency: How much latency we allow in these checks. The latency is always positive, so if we set
+          ``expect = 3`` we perform the status check after ``latency`` has passed.
+:unit: The time unit (see :ref:`units`)
+:ok: *Optional* How many times the check must succeed before setting OK status (default: 1)
+:nok: *Optional* How many failures we allow before setting NOK status (default: 1)
+:warn: *Optional* How many failures we allow before setting WARN status (default: 0). **Note:** if
+       you set this field, Observatory will slap you if you set ``warn >= nok``.
+
 
 This is how the edge in the example figure was configured, in :ref:`the example <sample>`:
 
