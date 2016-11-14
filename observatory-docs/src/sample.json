@@ -1,0 +1,43 @@
+{
+  "name": "my-sample-system",
+  "description": "blah blah",
+  "graph": [
+    {
+      "from": "web-server",
+      "to": "event-processor",
+      "status": "OK",
+      "check": {
+        "kind": "time",
+        "seen": 1,
+        "expect": 1,
+        "within": 10,
+        "unit": "sec"
+      }
+    },
+    {
+      "from": "event-processor",
+      "to": "journal",
+      "status": "NOK",
+      "check": {
+        "kind": "time",
+        "seen": 0,
+        "expect": 1,
+        "within": 500,
+        "unit": "msec"
+      }
+    },
+    {
+      "from": "event-processor",
+      "to": "database",
+      "status": "WARN",
+      "check": {
+        "kind": "countable",
+        "seen": 1,
+        "expect": 1,
+        "for": 3,
+        "latency": 500,
+        "unit": "msec"
+      }
+    }
+  ]
+}
