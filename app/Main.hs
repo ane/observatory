@@ -1,5 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PartialTypeSignatures #-}
 module Main where
 
 import Data.String.Strip
@@ -16,54 +17,60 @@ data Edge a = Edge String String (EdgeChecker a)
 
 type EdgeMap a = M.Map (T.Text, T.Text) (Edge a)
 
-type EdgeState = UTCTime
+type EdgeState = [UTCTime]
 type Checker = NominalDiffTime -> Bool
 type EdgeStateUpdater a = StateT EdgeState IO a
-
-edgeKeys :: [((T.Text, T.Text), Checker)]
-edgeKeys = [(("pieru", "perse"), mkChecker 1000), (("d", "c"), mkChecker 5000)]
-
-builder :: EdgeChecker Bool -> Checker -> IO (Bool, UTCTime)
-builder behaviour chk = do
-  k <- getCurrentTime
-  runStateT (runReaderT (runEC behaviour) chk) k
-
-bap b xs = M.map (builder b) $ M.fromList xs
-
-parseLineGetState :: M.Map (Text, Text) (IO (Bool, UTCTime)) -> T.Text -> Maybe (IO (Bool, UTCTime))
-parseLineGetState m k = M.lookup (a, b) m
-  where
-    [a, b] = T.splitOn " " k
-
-readGetState m = parseLineGetState m <$> fmap T.pack getLine
-
-bjonn = bap currentTimeChecker edgeKeys
-
-blart = do
-  s <- readGetState bjonn
-  case s of
-    Just j -> do
-      (p, k) <- j
-      print $ show p ++ show k
-      blart
-    Nothing -> putStrLn "piss off" >> blart
 
 newtype EdgeChecker a = EdgeChecker {
     runEC :: ReaderT Checker (StateT EdgeState IO) a
     } deriving (Applicative, Functor, Monad, MonadIO, MonadReader Checker, MonadState EdgeState)
 
+edgeKeys :: [((T.Text, T.Text), Checker)]
+edgeKeys = [(("pieru", "perse"), mkChecker 1000), (("d", "c"), mkChecker 5000)]
+
+           
+builder behaviour chk = do
+  x <- getCurrentTime
+  execStateT (runReaderT (runEC behaviour) chk) [x]
+
+bap b xs = M.map (builder b) $ M.fromList xs
+
+parseLineGetState :: Ord k => M.Map k (EdgeState) -> k -> Maybe EdgeState
+parseLineGetState m k = M.lookup k m
+
+readGetState :: (Text, Text) -> Map (Text, Text) EdgeState -> Maybe EdgeState
+readGetState k m = parseLineGetState m k
+
+bjonn :: IO (Map (Text, Text) EdgeState)
+bjonn = mapM (builder currentTimeChecker) (M.fromList edgeKeys)
+
+runChecker :: (Text, Text) -> EdgeState -> IO (Bool, EdgeState)
+runChecker (s, d) old = runStateT (runReaderT (runEC currentTimeChecker) (mkChecker 1000)) old
+  
+blart m = do
+  [src, dst] <- (T.splitOn " " . T.pack) `fmap` getLine
+  b <- m
+  case readGetState (src, dst) b of
+    Just oldState -> do
+      (pass, newState) <- runChecker (src, dst) oldState
+      putStrLn $ "Diff to previous: " ++ show (diffUTCTime (Prelude.head newState) (Prelude.head oldState))
+      putStrLn $ show pass ++ ", history: " ++ show newState
+      blart $ return (M.insert (src, dst) newState b)
+    Nothing -> do
+      putStrLn "fail!"
+      blart $ return b
+
 trigger :: UTCTime -> EdgeChecker Bool
 trigger time = do
   checker <- ask
-  lastTime <- get
-  put time
-  return $ checker $ diffUTCTime time lastTime
+  times <- get
+  modify (time:)
+  return $ checker $ diffUTCTime time (Prelude.head times)
 
 mkChecker :: Integer -> NominalDiffTime -> Bool
 mkChecker diff = (>=) (fromRational (diff % 1000) :: NominalDiffTime)
 
-main :: IO ()
-main = blart
+main = blart bjonn
 
 currentTimeChecker :: EdgeChecker Bool
 currentTimeChecker = do
@@ -73,10 +80,10 @@ currentTimeChecker = do
 perse :: EdgeChecker ()
 perse = do
   _ <- liftIO getChar
-  oldTime <- get
+  oldTimes <- get
   newTime <- liftIO getCurrentTime
   pass <- trigger newTime
-  let diff = diffUTCTime newTime oldTime
+  let diff = diffUTCTime newTime (Prelude.head oldTimes)
   liftIO . putStrLn $ "At " ++ show newTime ++ ": " ++ show pass ++ " delta: " ++ show diff
   perse
     
