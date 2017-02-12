@@ -27,13 +27,10 @@ newtype EdgeChecker a = EdgeChecker {
 
 edgeKeys :: [((T.Text, T.Text), Checker)]
 edgeKeys = [(("pieru", "perse"), mkChecker 1000), (("d", "c"), mkChecker 5000)]
-
            
 builder behaviour chk = do
   x <- getCurrentTime
   execStateT (runReaderT (runEC behaviour) chk) [x]
-
-bap b xs = M.map (builder b) $ M.fromList xs
 
 parseLineGetState :: Ord k => M.Map k (EdgeState) -> k -> Maybe EdgeState
 parseLineGetState m k = M.lookup k m
@@ -49,16 +46,15 @@ runChecker (s, d) old = runStateT (runReaderT (runEC currentTimeChecker) (mkChec
   
 blart m = do
   [src, dst] <- (T.splitOn " " . T.pack) `fmap` getLine
-  b <- m
-  case readGetState (src, dst) b of
+  case readGetState (src, dst) m of
     Just oldState -> do
       (pass, newState) <- runChecker (src, dst) oldState
       putStrLn $ "Diff to previous: " ++ show (diffUTCTime (Prelude.head newState) (Prelude.head oldState))
       putStrLn $ show pass ++ ", history: " ++ show newState
-      blart $ return (M.insert (src, dst) newState b)
+      blart (M.insert (src, dst) newState m)
     Nothing -> do
       putStrLn "fail!"
-      blart $ return b
+      blart m
 
 trigger :: UTCTime -> EdgeChecker Bool
 trigger time = do
