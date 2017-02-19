@@ -16,30 +16,20 @@
 (defprotocol Checker
   (check [this n1 n2]))
 
-(defn event-diff
-  [e1 e2]
-  (t/interval (:time e1) (:time e2)))
-
-(defn event-within?
-  [win]
-  (fn [pair] (<= (let [as-ms (t/in-millis (:diff pair))]
-                   as-ms) win)))
-
-(defn to-diff
-  [[p1 p2]]
-  {:diff (event-diff p1 p2)
-   :src p1
-   :dst p2})
-
-(deftype Temporal [win min max]
+(deftype Temporal [win ok warn fail]
   Object
-  (toString [this] (format "Temporal %sms min=%d max=%d" win min max))
+  (toString [this] (format "Temporal %sms ok=%s warn=%s nok=%s" win ok warn fail))
   Checker
   (check [this n1 n2]
-    (let [pairs (find-pairs by-id n1 n2)]
-      (->> pairs
-           (map to-diff)
-           (filter (event-within? win))))))
+    (let [[passing failing] (->> (find-pairs by-id n1 n2) ; get correlations
+                                 (map (fn [[p1 p2]] (t/interval (:time p1) (:time p2))))
+                                 (map t/in-millis)
+                                 (split-with (fn [interval] (>= win interval))))]                  ; split into [(ok) (bad)]
+      {:pass passing
+       :fail failing
+       :status (cond (<= fail (count failing)) 'nok
+                     (<= warn (count failing)) 'warn
+                     (<= ok   (count passing)) 'ok)})))
 
 (defn -main
   "I don't do a whole lot ... yet."
