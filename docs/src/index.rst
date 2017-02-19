@@ -22,12 +22,12 @@ Part I: Introduction
 ~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    introduction
    overview
-   monitor
    configuration
+   monitor
 
 Part II: Architecture
 ~~~~~~~~~~~~~~~~~~~~~
