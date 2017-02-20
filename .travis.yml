@@ -27,5 +27,5 @@ install:
 script:
   - travis-sphinx --source docs/src build 
 
-after-success:
+after_success:
   - travis-sphinx deploy
