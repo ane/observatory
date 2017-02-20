@@ -13,6 +13,7 @@ PAPEROPT_letter = -D latex_paper_size=letter
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) src
 # the i18n builder cannot share the environment and doctrees with the others
 I18NSPHINXOPTS  = $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) src
+GH_PAGES_SOURCES = src Makefile make.bat
 
 .PHONY: help
 help:
@@ -223,3 +224,14 @@ dummy:
 	$(SPHINXBUILD) -b dummy $(ALLSPHINXOPTS) $(BUILDDIR)/dummy
 	@echo
 	@echo "Build finished. Dummy builder generates no files."
+
+gh-pages:
+	git checkout gh-pages
+	rm -rf build _sources _static
+	git checkout clj $(GH_PAGES_SOURCES)
+	git reset HEAD
+	make html
+	mv -fv build/html/* ./
+	rm -rf $(GH_PAGES_SOURCES) build
+	git add -A
+	git ci -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout master
