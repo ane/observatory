@@ -1,3 +1,9 @@
+addons:
+  apt:
+    packages:
+      - graphviz
+      - plantuml
+      
 language: python - "2.7"
 # ding dong
 # before_install will simply setup a conda enviroment for installing python packages, if you
