@@ -7,13 +7,13 @@
 What is it?
 ===========
 
-Observatory is a system status service, displaying relevant system information, serving a purpose
-similar to `Thruk <https://www.thruk.org/>`_ or `Riemann <http://riemann.io/>`_.
+**Observatory** is a distributed tracing system that can be used to monitor traffic latencies between
+networked services.
 
-Observatory is a **visual information program**. Observatory displays **visually** the flow of
-information in a distributed system rendered as a **graph**. Under the hood, it is based on *tracing
-tokens*, sent from each node, to a central Observatory server. These tokens are used to render a
-real-time graph that can be used to quickly identify the status of information flows.
+Observatory is similar to `Zipkin <https://zipkin.io>`_ or `Kamon <http://kamon.io>`_.
+
+Observatory aggregates tracing tokens received from various inputs. These tracing tokens are used to
+render an image as seen :ref:`below <sample>`.
 
 
 Why would I use it?
@@ -36,19 +36,26 @@ this:
       D[label="database"];
   
   
-      A->B[color="#00AA00",label="OK(seen=3),\nCheck(expect=1,within=10,unit=sec)"];
-      B->D[color="#AAAA00",label="WARN(seen=1),\nCheck=(expect=1,for=3)"];
-      B->C[color="#AA0000",label="NOK(seen=0),\nCheck=(expect=1,within=500,unit=msec)"];
+      A->B[color="#00AA00",label="OK(pass=3/3 100%),\nCheck(within=10s,ok=3,warn=0,fail=0)"];
+      B->D[color="#AAAA00",label="WARN(pass=4/5 80%),\nCheck=(within=500ms,ok=3,warn=1,fail=2)"];
+      B->C[color="#AA0000",label="NOK(pass=1/4 25%),\nCheck=(within=1000ms,ok=3,warn=1,fail=0)"];
     }
 
 The system in it has four nodes: ``web-server``, a root node, ``event-processor``, ``journal``, and
 ``database``. For every ``web-server`` request, we expect ``event-processor`` to have reacted within
-10 seconds. The ``seen`` value of 3 means this has happened three times. For every
-``event-processor`` request, we expect it at ``journal`` within 500 milliseconds. These are
-*temporal checks*. These are based on our own observations of the system. For the ``database`` node
-we don't know, so we've set up a *quantitative* check: for every 3 requests from its parent
-(``event-processor``), we expect ``1`` request there. This check is barely at the threshold, so it
-has a warning status.
+10 seconds. None of the observed requests have failed (i.e. taken more than 10s), so the status is
+marked as OK. We've defined a window of 3 requests out of which three must succeed in order to mark
+as OK. Since ``warn=0`` and ``fail=0`` should any of the requests fail the edge will automatically
+be marked as ``NOK`` (fail trumps warn).
+
+For a ``event-processor`` → ``database`` message, we expect it to react within 500ms. The size of
+the observation window is 5 requests (3+1+2). For an OK status, 3 requests are required to succeed
+within this window. One request in this window has failed. Since ``warn`` is set to 1, but ``fail``
+is at 2, we mark the edge as ``WARN``. 
+
+``event-processor`` → ``journal`` is much stricter: no request in the window (3+1+0 = 4) must fail
+(``fail = 0``). As can be seen, only one out of four passed the check, so it is marked as ``FAIL``.
+
 
 Think of it as what a logging server contains, but relevant parts visualized, and the
 visualization can be customized. 
@@ -106,3 +113,5 @@ Observatory is
   measurement (see :ref:`overview`)
 - Configured using a simple TOML syntax (see :ref:`configuration`) and run as a stand-alone server
   program with an optional web front-end (the graph)
+
+Now head over to :ref:`overview` to learn more!

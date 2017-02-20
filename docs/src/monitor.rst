@@ -50,7 +50,7 @@ point, the interface is just a constantly refreshing Graphviz rendering of the g
 Internally, Observatory is accessed with a REST API. If we configure a system called
 ``my-sample-system``, we get its graph as JSON like this:
 
-.. code-block:: json
+.. code-block:: none
 
    $ curl -i http://observatory/streams/my-sample-system
    HTTP/1.1 200 OK
@@ -66,43 +66,48 @@ Internally, Observatory is accessed with a REST API. If we configure a system ca
          "from": "web-server",
          "to": "event-processor",
          "status": "OK",
-         "seen": 3,
-         "last": "2016-11-14T11:33:32+02:00",
+         "pass": 3,
+         "total": 3,
+         "last": "2016-11-14T11:33:32.000Z",
          "failed": "2016-11-12T17:22:32+02:00",
          "check": {
-           "kind": "time",
-           "expect": 1,
            "within": 10,
-           "unit": "sec"
+           "unit": "seconds",
+           "ok": 3,
+           "warn": 0,
+           "fail": 0
          }
        },
        {
          "from": "event-processor",
          "to": "journal",
          "status": "NOK",
-         "seen": 0,
+         "pass": 1,
+         "total": 4,
          "last": "2016-11-14T11:00:00+02:00"
          "failed": "2016-11-14T11:33:32+02:00",
          "check": {
-           "kind": "time",
-           "expect": 1,
            "within": 500,
-           "unit": "msec"
+           "unit": "msec",
+           "ok": 3,
+           "warn": 1,
+           "fail": 0
          }
        },
        {
          "from": "event-processor",
          "to": "database",
          "status": "WARN",
-         "seen": 1,
+         "pass": 4,
+         "total": 5,
          "last": "2016-11-14T12:00:00+02:00"
          "failed": "2016-11-14T12:01:22+02:00",
          "check": {
-           "kind": "countable",
-           "expect": 1,
-           "for": 3,
-           "latency": 500,
-           "unit": "msec"
+           "within": 500,
+           "unit": "msec",
+           "ok": 3,
+           "warn": 1,
+           "fail": 2
          }
        }
      ]

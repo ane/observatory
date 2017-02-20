@@ -22,22 +22,33 @@ For Observatory to function, we need the following:
 
 This is an example configuration.
 
-.. code-block:: none
+.. code-block:: ini
 
    name = "My Observatory"
    description = "blah blah"
 
+   # create a HTTP server
    [input.http]
    interface = "localhost"
    port = "8080"
    path = "/events"
 
+   # listen from rabbitmq exchange 'observatory'
+   # with routing key 'observatory.input'
    [input.rabbitmq]
    address = "localhost"
+   port = 5672
    username = "rabbit"
    password = "asdfasdf"
-   queue = "observatory.input"
+   exchange = "observatory"
+   exchangeType = "topic"
+   routingKey = "observatory.input"
 
+   # read from ActiveMQ using Camel connector
+   [input.camel]
+   url = "activemq://localhost:8888/observatory.in"
+
+   # frontend HTTP server
    [output.http]
    interface = "localhost"
    port = "9090"
@@ -59,7 +70,7 @@ Streams
 
 A part of the system we wish to monitor for data flows is called a *stream*. This is an example:
 
-.. code-block:: none
+.. code-block:: ini
 
    [[stream]]
    name = "my-sample-stream"
@@ -107,7 +118,7 @@ some internal calculations, notes the equal tokens and successive time stamps, g
      C[label="journal"];
      D[label="database"];
 
-     A->B[label="OK(seen=1)",color="#00AA00"];
+     A->B[label="OK(pass=1/1 100%)",color="#00AA00"];
    }
 
 Lets assume the same thing happens for the other nodes, ``journal`` and ``database``, giving this:
@@ -121,9 +132,9 @@ Lets assume the same thing happens for the other nodes, ``journal`` and ``databa
      C[label="journal"];
      D[label="database"];
 
-     A->B[label="OK(seen=1)",color="#00AA00"];
-     B->C[label="OK(seen=1)",color="#00AA00"];
-     B->D[label="OK(seen=1)",color="#00AA00"];
+     A->B[label="OK(pass=1/1 100%)",color="#00AA00"];
+     B->C[label="OK(pass=1/1 100%)",color="#00AA00"];
+     B->D[label="OK(pass=1/1 100%)",color="#00AA00"];
    }
    
 This information tells us traffic has occured *once* between all the nodes. This configuration is
@@ -134,67 +145,59 @@ Edges
 
 An **edge** means communication between two nodes. It is configured thusly:
 
-.. code-block:: none
+.. code-block:: ini
 
-   [[edge]]
+   [[stream.edges]]
    name = "http traffic sent to processor"
    from = "web-server"
    to = "event-processor"
 
 :name: A description of the edge
-:from: Edge start
-:to: Edge destination
+:from: Edge start node ID
+:to: Edge destination node ID
 
-An edge without **health checks** is equal to not having been defined, because this doesn't really
-tell us what to look at. So for this we need health checks.
+The node IDs are matched against sent tracing information. An edge like above will define two nodes:
+``web-server`` and ``event-processor``. Node ID matching in tracing is **case sensitive**.
 
-Health checks
-~~~~~~~~~~~~~
+You may guess that an edge without **health checks** is useless, because this doesn't really tell us
+what to look at. So for this we need health checks.
 
-Health checking a system can either be *temporal* or *countable*.  Temporal health checking means
-that data must flow in the stream under a certain time period. A quantitative health check on the
-other hand means that a certain amount of data must flow in the stream for every request.
+Checks
+------
 
-Health checks generally possess a *kind* and a *threshold*. The kind is what metrics are used to
-define the health check, and the threshold defines how many times the check must succeed or fail
-until a change is triggered.
+Health checking means that data must flow in the stream under a certain time period. Health checks
+generally possess a *kind* and *thresholds*. The kind is what metrics are used to define the health
+check, and the threshold defines how many times the check must succeed or fail until a change is
+triggered.
 
-Temporal
-********
-
-A temporal health check can either be *edge-based* or *total*. If we have an edge
-``(web-server,event-processor)``, we can define that if ``web-server`` receives a request, Journal
-must correlate it within ``N`` seconds (or any other time unit).
+If we have an edge ``(web-server,event-processor)``, we can define that if ``web-server`` receives a
+request, Journal must correlate it within ``N`` seconds (or any other time unit).
 
 The syntax for a temporal health check is this:
 
-.. code-block:: none
+.. code-block:: ini
 
-   [[edge]]
+   [[stream.edges]]
    name = "http traffic sent to processor"
    from = "web-server"
    to = "event-processor"
    
-     [edge.check]
+     [stream.edges.check]
      kind = "time"
-     expect = 1
      within = 500
      unit = msec
      ok = 3         
      warn = 0
      nok = 1
 
-:kind: The kind of the check, either ``time`` for temporal checks, ``countable`` for countable
-       checks 
-:expect: How many events are expected within the check parameters
-:within: The time window
+:within: The time window as a number
 :unit: The time unit (see :ref:`units`)
 :ok: *Optional* How many times the check must succeed before setting OK status (default: 1)
-:nok: *Optional* How many failures we allow before setting NOK status (default: 1)
+:nok: *Optional* How many failures we allow before setting NOK status (default: 0)
 :warn: *Optional* How many failures we allow before setting WARN status (default: 0). **Note:** if
-       you set this field, Observatory will slap you if you set ``warn >= nok``.
+       you set this field, Observatory will slap you if you set ``warn > nok``.
      
-Once data starts flowing, we get an output like this:
+Once data starts flowing, and we've received four requests, of which all have passed, we get an output like this:
 
 .. graphviz::
    
@@ -203,7 +206,7 @@ Once data starts flowing, we get an output like this:
      A[label="web-server"];
      B[label="event-processor"];
   
-     A->B[color="#00AA00",label="OK(seen=3,expect=1,within=10,unit=sec)"];
+     A->B[color="#00AA00",label="OK(pass=4/4 100%)\nCheck(ok=3,warn=0,fail=1)"];
    }
 
 A configuration like this can be defined between any two nodes in the graph, and there can be any
@@ -227,82 +230,104 @@ number of them. The ``from`` and ``to`` fields are limited to the configured nod
    nanosecond  nanosecond, nsec, ns
    =========== ===========
 
-Countable
-*********
-
-A countable health check monitors a correlation between elemenst.  Let's say for every three
-``event-processor`` events, there must be an event registered from it to ``database``, within a
-certain latency. So if the fourth request occurs, and we haven't received the request from
-``event-processor``, we mark the stream as ``NOK``. So, defining a ``1:3`` ratio for ``event-processor`` and
-``database`` marks this ratio thusly:
-
-.. code-block:: none
-
-   [[edge]]
-   name = "event-processor to database"
-   from = "event-processor"
-   to = "database"
-   
-     [edge.check]
-     kind = "countable"
-     expect = 1
-     for = 3
-     latency = 500
-     unit = msec
-
-The countable health check has these parameters:
-
-:expect: How many messages are expected relative to a target node
-:for: The target node to which to compare ours. 
-:latency: How much latency we allow in these checks. The latency is always positive, so if we set
-          ``expect = 3`` we perform the status check after ``latency`` has passed.
-:unit: The time unit (see :ref:`units`)
-:ok: *Optional* How many times the check must succeed before setting OK status (default: 1)
-:nok: *Optional* How many failures we allow before setting NOK status (default: 1)
-:warn: *Optional* How many failures we allow before setting WARN status (default: 0). **Note:** if
-       you set this field, Observatory will slap you if you set ``warn >= nok``.
-
+Example
+-------
 
 This is how the edge in the example figure was configured, in :ref:`the example <sample>`:
 
 .. _example_config:
 
-.. code-block:: none
+.. code-block:: ini
 
    [[stream]]
    name = "my-sample-system"
    nodes = ["web-server", "event-processor", "journal", "database"]
+   
+       [[stream.edges]]
+       name = "web server to event processor"
+       from = "web-server"
+       to = "event-processor"
+   
+           [stream.edges.check]
+           within = 10
+           unit = "sec"
+           min = 3
+           warn = 0
+           fail = 0
+   
+       [[stream.edges]]
+       name = "event-processor to database"
+       from = "event-processor"
+       to = "database"
+   
+           [stream.edges.check]
+           within = 500
+           unit = "ms"
+           min = 3
+           warn = 1
+           fail = 2
+   
+       [[stream.edges]]
+       name = "event-processor to journal"
+       from = "event-processor"
+       to = "journal"
+   
+           [stream.edges.check]
+           within = 500
+           unit = "ms"
+           min = 3
+           warn = 0
+           fail = 0
 
-     [[edge]]
-     name = "web server to event processor"
-     from = "web-server"
-     to = "event-processor"
-     
-       [edge.check]
-       kind = "time"
-       expect = 1
-       within = 10
-       unit = sec
+If you can't make sense of `TOML`_, here's the equivalent JSON:
 
-     [[edge]]
-     name = "event processor to database"
-     from = "event-processor"
-     to = "database"
-     
-       [edge.check]
-       kind = "countable"
-       expect = 1
-       for = 3
-       latency = 500
-       unit = msec
+.. code-block:: none
 
-     [[edge]]
-     name = "event-processor to journal"
-     from = "event-processor"
-     to = "journal"
-     
-       [edge.check]
-       kind = "time"
-       expect = 1
-       within = 500
-       unit = msec
+   "stream": [{
+       "edges": [
+         {
+           "check": {
+             "fail": 0,
+             "min": 3,
+             "unit": "sec",
+             "warn": 0,
+             "within": 10
+           },
+           "from": "web-server",
+           "name": "web server to event processor",
+           "to": "event-processor"
+         },
+         {
+           "check": {
+             "fail": 2,
+             "min": 3,
+             "unit": "ms",
+             "warn": 1,
+             "within": 500
+           },
+           "from": "event-processor",
+           "name": "event-processor to database",
+           "to": "database"
+         },
+         {
+           "check": {
+             "fail": 0,
+             "min": 3,
+             "unit": "ms",
+             "warn": 0,
+             "within": 500
+           },
+           "from": "event-processor",
+           "name": "event-processor to journal",
+           "to": "journal"
+         }
+       ],
+       "name": "my-sample-system",
+       "nodes": [
+         "web-server",
+         "event-processor",
+         "journal",
+         "database"
+       ]
+     }
+   ]}

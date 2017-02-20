@@ -39,7 +39,8 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
-    'sphinx.ext.graphviz'
+    'sphinx.ext.graphviz',
+    'sphinxcontrib.plantuml'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -60,7 +61,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Observatory'
-copyright = u'2016, Antoine Kalmbach'
+copyright = u'2016, Antoine Kalmbach. MIT License.'
 author = u'Antoine Kalmbach'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -441,3 +442,4 @@ epub_exclude_files = ['search.html']
 intersphinx_mapping = {'https://docs.python.org/': None}
 
 graphviz_output_format = "svg"
+plantuml_output_format = "svg"
