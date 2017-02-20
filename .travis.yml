@@ -1,5 +1,7 @@
 addons:
   apt:
+    sources:
+      - debian-sid
     packages:
       - graphviz
       - plantuml
