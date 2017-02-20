@@ -8,6 +8,7 @@ import Prelude as P
 import Data.String.Strip
 import Data.Time.Clock
 import Data.Ratio
+import Data.List
 import Control.Concurrent
 import Control.Monad.State
 import Control.Monad.Reader
@@ -17,7 +18,7 @@ import Data.Text as T
 data Event a = Event
   { timestamp :: UTCTime
   , eventId :: a
-  }
+  } deriving (Eq, Show)
 
 data Node = Node
   { label :: Text
@@ -35,7 +36,7 @@ data TimeUnit a where
   Milliseconds :: Int -> TimeUnit Int
   Microseconds :: Int -> TimeUnit Int
 
-data Check = Temporal Int (TimeUnit Int) | Cardinal Int Int Int
+data Check = Temporal Int Int (TimeUnit Int) | Cardinal Int Int Int
 
 toMicro :: TimeUnit Int -> TimeUnit Int
 toMicro (Microseconds x) = Microseconds x
@@ -50,34 +51,29 @@ data Status = OK | WARN | NOK
 
 type Checker = Check -> Status
 
-findCorrelation :: Check -> Node -> Node -> [(Event Text, Event Text)]
-findCorrelation c1 n1 n2 =
-  let h1 = history n1
-      h2 = history n2
-      last1 = P.head h1
-      last2 = P.head h2
-      withinOne = P.filter (eventMatcher last1) h1
-      withinTwo = P.filter (eventMatcher last2) h2
-  in
-  do w1 <- withinOne
-     w2 <- withinTwo
-     if eventId w1 == eventId w2 then return (w1, w2) else []
-  where
-    eventMatcher :: Event Text -> Event Text -> Bool
-    eventMatcher last e =
-      case c1 of
-        Temporal _ unit -> let dt = toDiffTime unit in diffUTCTime (timestamp last) (timestamp e) <= dt
-        Cardinal _ _ _  -> False
+findPairs :: Node -> Node -> [(Event Text, Event Text)]
+findPairs n1 n2 = do
+  w1 <- history n1
+  w2 <- history n2
+  if eventId w1 == eventId w2
+    then return (w1, w2)
+    else []
   
-buildChecker :: Edge -> Check -> Node -> Node -> Maybe Status
-buildChecker edge checker n1 n2 = 
-  do m1 <- if src edge == label n1 then Just n1 else Nothing
-     m2 <- if dst edge == label n2 then Just n2 else Nothing
-     return $
-       case checker of
-         Temporal count unit -> OK
-         Cardinal{} -> NOK
+correlate :: Edge -> Check -> Node -> Node -> Maybe Status
+correlate edge checker n1 n2 = do
+  guard $ src edge == label n1 && dst edge == label n2
+  case checker of
+    Temporal okThreshold warnThreshold window -> do
+      let pairs = findPairs n1 n2
+      guard $ P.length pairs > 0
+      let successes = P.filter (\(e1, e2) -> diffUTCTime (timestamp e1) (timestamp e2) <= (toDiffTime window)) pairs
+          failures = pairs \\ successes
+      return $
+        case (P.length successes, P.length failures) of
+          (okThreshold, _) -> OK
+          _                -> NOK
+    Cardinal _ _ _ -> do
+      return NOK
 
 main = do
   putStrLn "hello"
-  
