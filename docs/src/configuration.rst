@@ -281,7 +281,7 @@ This is how the edge in the example figure was configured, in :ref:`the example 
 
 If you can't make sense of `TOML`_, here's the equivalent JSON:
 
-.. code-block:: json
+.. code-block:: none
 
    "stream": [{
        "edges": [

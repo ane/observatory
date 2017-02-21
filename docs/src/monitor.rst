@@ -50,7 +50,7 @@ point, the interface is just a constantly refreshing Graphviz rendering of the g
 Internally, Observatory is accessed with a REST API. If we configure a system called
 ``my-sample-system``, we get its graph as JSON like this:
 
-.. code-block:: json
+.. code-block:: none
 
    $ curl -i http://observatory/streams/my-sample-system
    HTTP/1.1 200 OK
