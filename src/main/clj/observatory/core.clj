@@ -21,10 +21,10 @@
   (toString [this] (format "Temporal %sms ok=%s warn=%s nok=%s" win ok warn fail))
   Checker
   (check [this n1 n2]
-    (let [[passing failing] (->> (find-pairs by-id n1 n2) ; get correlations
+    (let [[passing failing] (->> (find-pairs by-id n1 n2) 
                                  (map (fn [[p1 p2]] (t/interval (:time p1) (:time p2))))
                                  (map t/in-millis)
-                                 (split-with (fn [interval] (>= win interval))))]                  ; split into [(ok) (bad)]
+                                 (split-with (fn [interval] (>= win interval))))]                  
       {:pass passing
        :fail failing
        :status (cond (<= fail (count failing)) 'nok
