@@ -13,11 +13,52 @@ The *movement* on a stream will be initiated by the root node. The message, whic
 throughout a stream, is tagged with a **tracing ID**. This way, the message can be tracked as it
 moves down the stream. All of these pieces are called *elements*, while checks are *behaviours*.
 
-Elements
-~~~~~~~~
+Entities
+--------
 
-Nodes
-#####
+The entities of an Observatory system can be divided into **streams elements**, **health
+checks** and **events**. The divide is the following:
+
+* **Elements** are parts of the stream, i.e., servers and their connections and connections'
+  connections
+* **Health checks** are what determine whether an edge is healthy or not, it can be based on the
+  measured latency of its traffic
+* **Event** is information that is used to update Observatory, which include tracing tokens
+* **Tracing tokens** are unique event identiers that identify movement in a stream. Passing the
+  tracing token downstream indicates the progress of a certain request in the stream.
+
+Glossary
+--------
+
+Below is a helpful glossary of the terms.
+
+.. glossary::
+
+   :ref:`node`
+       An individual node in the network, e.g., a web service.
+
+   :ref:`edge`
+       A connection between two nodes, e.g., from a web service to a database, or from a database to
+       a logging system
+
+   :ref:`edge`
+       A group of connected edges that define an abstract data stream, e.g. from a web service to a
+       database to a logging system
+
+   :ref:`health_check`
+       How to identify whether individual edge traffic is healthy or not
+
+   :ref:`event`
+       Information used to tell Observatory traffic has occurred
+
+   :ref:`tracing_token`
+       A unique tracing id that can be used throughout the stream to identify data moving accross
+       the stream
+
+.. _node:
+
+Node
+++++
 
 .. graphviz::
 
@@ -28,21 +69,37 @@ Nodes
 A node is an individual component in the stream. It can be a web service or any program that reads
 input from one place and produces output to another.
 
-Edges
-#####
+Attributes
+@@@@@@@@@@
+
+:name: A unique node identifier
+
+.. _edge:
+
+Edge
+++++
+
 .. graphviz::
 
    digraph {
      rankdir=LR;
      "web-server" -> "event-processor";
    }
-
+   
 An edge is a *proof of connectivity* between two nodes. You can define, e.g., that a web service `A`
 talks to web service `B` and by observing traffic between these two nodes, you can identify some
-mechanisms for checking that traffic is OK between these nodes.
 
-Streams
-#######
+Attributes
+@@@@@@@@@@
+
+:name: The name of this connection (e.g. "web server to database")
+:from: The source node of this edge
+:to: The destination node of this edge
+
+.. _stream:
+
+Stream
+++++++
 
 .. graphviz::
 
@@ -51,12 +108,22 @@ Streams
      "web-server" -> "event-processor" -> "data-warehouse";
    }
 
-A stream is a group of connected edges. It represents the movement of individual messages within an
-observed system. The above figure illustrates, in very broad terms, that each message from
-``web-server`` will move to ``event-processor`` and from there to ``data-warehouse``.
+A stream is a group of connected edges, a pipeline of nodes. It represents the movement of
+individual messages within an observed system. The above figure illustrates, in very broad terms,
+that each message from ``web-server`` will move to ``event-processor`` and from there to
+``data-warehouse``.
 
-Checks
-######
+Attributes
+@@@@@@@@@@
+
+:name: The description of the stream
+:node: The nodes inside the stream
+:edges: The edges of the stream
+
+.. _health_check:
+
+Health check
+++++++++++++
 
 Monitoring stream traffic is of little interest if you don't define *how* traffic should move. For
 example, from observational data (by analyzing logs, etc.) we can say that requests from
@@ -64,10 +131,49 @@ example, from observational data (by analyzing logs, etc.) we can say that reque
 when, for a hundred requests, or any such number, *eighty* must make it to ``event-processor``. in this
 time. If this doesn't happen, we say that there is something wrong in the connection.
 
-The above constitutes a *temporal check*. 
+A health check defines three thresholds: the OK threshold, the WARN threshold, and the FAIL
+threshold. An individual observation window is the sum of the thresholds. If you define 3 for all
+thresholds, this would create a sliding observation window of 9 events.**
 
-In practice
-~~~~~~~~~~~
+**Note**: You must have `OK >= FAIL >= WARN`, otherwise the observations don't make sense.
+
+Attributes
+@@@@@@@@@@
+
+:within: The time window for the edge 
+:unit: The time unit for the window (see :ref:`units`)
+:ok: Minimum events that should pass in order to trigger OK
+:warn: Minimum events that should pass in order to trigger OK 
+:fail: Minimum events that should pass in order to trigger fail 
+
+.. _event:
+
+Event
++++++
+
+An event is a signal to Observatory that a node has registered traffic. 
+
+Attributes
+@@@@@@@@@@
+
+:timestamp: A RFC3339 date-time or 64-bit integer in microseconds from Unix epoch time
+:node: The node from which the event is sent
+:tracing: The tracing token of this event
+
+.. _tracing_token:
+
+Tracing token
++++++++++++++
+
+:format: A unique string, preferably a `UUID <https://en.wikipedia.org/wiki/Universally_unique_identifier>`_.
+
+The tracing token is used to identify the movement of a message. When the message originates at the
+*root node*, the root node attaches a unique tracing token to the message. When that message is
+passed to the next node, e.g., in a HTTP/MQ header, the node uses that tracing token to inform
+observatory. That way, Observatory can identify that messages are moving successfully.
+
+Hot it works
+------------
 
 Initially, we configure a *stream*. A stream is a directed acyclic graph (DAG) that models the flow
 of information in a distributed system. So if our system consists of two services, ``web-service`` and
@@ -94,9 +200,6 @@ Streams are composed of nodes and edges. A node is identified by a unique UTF-8 
 pair between two distinct nodes. Defining an edge means configuring the rate of monitored
 information flow.
 
-Correlation
-###########
-
 How all of this works can be illustrated with a sequence diagram:
 
 .. uml:: 
@@ -117,7 +220,7 @@ How all of this works can be illustrated with a sequence diagram:
    WS -> EP: POST /events ...\nX-Tracing-ID: abcd1234
    note left: tracing id\nin headers
    activate EP
-   group Asynchronously: propagate downstream id
+   group Asynchronously: propagate upstream id
        EP --> O: ""(event-processor, **abcd1234**, T2)""
    end
 
@@ -128,6 +231,14 @@ How all of this works can be illustrated with a sequence diagram:
    C <- WS: ""HTTP 200 OK""
    deactivate WS
    deactivate C
+
+.. _async_warning:
+
+.. warning:: Asynchronous sending
+
+   Informing Observatory should happen *asynchronously* so that your application does not incur
+   additional latency from performing a HTTP request or a MQ send. Otherwise, you may introduce a
+   significant performance overhead.
    
 So, node ``web-server`` receives a HTTP request. A unique id ``abcd1234`` is generated. Webserver
 sends the information packet ``(web-server, abcd1234, T1)`` to Observatory, where ``T1`` is the current

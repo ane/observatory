@@ -1,33 +1,34 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE GADTs                 #-}
+{-# LANGUAGE OverloadedStrings     #-}
 {-# LANGUAGE PartialTypeSignatures #-}
-{-# LANGUAGE GADTs #-}
 
 module Main where
 
-import Prelude as P
-import Data.String.Strip
-import Data.Time.Clock
-import Data.Ratio
-import Control.Concurrent
-import Control.Monad.State
-import Control.Monad.Reader
-import Control.Monad.Trans.Maybe
-import Data.Text as T
+import           Control.Concurrent
+import           Control.Monad.Reader
+import           Control.Monad.State
+import           Control.Monad.Trans.Maybe
+import           Data.List
+import           Data.Ratio
+import           Data.String.Strip
+import qualified Data.Text                 as T
+import           Data.Time.Clock
+import           Prelude                   as P
 
-data Event a = Event
+data Event = Event
   { timestamp :: UTCTime
-  , eventId :: a
+  , eventId   :: T.Text
   }
 
 data Node = Node
-  { label :: Text
-  , history :: [Event Text]
+  { label   :: T.Text
+  , history :: [Event]
   }
 
 data Edge = Edge
-  { src :: Text
-  , dst :: Text
-  , state :: [Event Text]
+  { src   :: T.Text
+  , dst   :: T.Text
+  , state :: [Event]
   }
 
 data TimeUnit a where
@@ -35,49 +36,41 @@ data TimeUnit a where
   Milliseconds :: Int -> TimeUnit Int
   Microseconds :: Int -> TimeUnit Int
 
-data Check = Temporal Int (TimeUnit Int) | Cardinal Int Int Int
+data Check = Temporal (TimeUnit Int) Int Int Int
 
 toMicro :: TimeUnit Int -> TimeUnit Int
 toMicro (Microseconds x) = Microseconds x
-toMicro (Seconds x) = Microseconds (x * 100000)
+toMicro (Seconds x)      = Microseconds (x * 100000)
 toMicro (Milliseconds x) = Microseconds (x * 1000)
 
 toDiffTime :: TimeUnit Int -> NominalDiffTime
 toDiffTime (Microseconds t) = fromIntegral t
-toDiffTime t = toDiffTime . toMicro $ t
+toDiffTime t                = toDiffTime . toMicro $ t
 
 data Status = OK | WARN | NOK
 
 type Checker = Check -> Status
 
-findCorrelation :: Check -> Node -> Node -> [(Event Text, Event Text)]
-findCorrelation c1 n1 n2 =
-  let h1 = history n1
-      h2 = history n2
-      last1 = P.head h1
-      last2 = P.head h2
-      withinOne = P.filter (eventMatcher last1) h1
-      withinTwo = P.filter (eventMatcher last2) h2
-  in
-  do w1 <- withinOne
-     w2 <- withinTwo
-     if eventId w1 == eventId w2 then return (w1, w2) else []
-  where
-    eventMatcher :: Event Text -> Event Text -> Bool
-    eventMatcher last e =
-      case c1 of
-        Temporal _ unit -> let dt = toDiffTime unit in diffUTCTime (timestamp last) (timestamp e) <= dt
-        Cardinal _ _ _  -> False
-  
-buildChecker :: Edge -> Check -> Node -> Node -> Maybe Status
-buildChecker edge checker n1 n2 = 
-  do m1 <- if src edge == label n1 then Just n1 else Nothing
-     m2 <- if dst edge == label n2 then Just n2 else Nothing
-     return $
-       case checker of
-         Temporal count unit -> OK
-         Cardinal{} -> NOK
+findPairs :: Node -> Node -> (Event -> Event -> Bool) -> [(Event, Event)]
+findPairs n1 n2 eq = do
+  e1 <- history n1
+  e2 <- history n2
+  if eq e1 e2 then return (e1, e2) else []
+
+runChecker :: Check -> Node -> Node -> Maybe Status
+runChecker checker n1 n2 = do
+  let pairs = findPairs n1 n2 (\e1 e2 -> eventId e1 == eventId e2)
+  guard $ not (null pairs)
+  return $
+    case checker of
+      Temporal win ok warn fail ->
+        case (length passing, length failing) of
+          (_, fc) | fail >= fc -> NOK
+          (_, fc) | warn >= fc -> WARN
+          (sc, _) | ok   >= sc -> OK
+        where
+          (passing, failing) = partition (\(e1, e2) -> toDiffTime win >= diffUTCTime (timestamp e1) (timestamp e2)) pairs
 
 main = do
   putStrLn "hello"
-  
+
