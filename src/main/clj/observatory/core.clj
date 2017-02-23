@@ -2,11 +2,11 @@
   (:gen-class)
   (:require [clj-time.core :as t]))
 
-(defn by-id
+(defn- by-id
   [e1 e2]
   (= (:id e1) (:id e2)))
 
-(defn find-pairs
+(defn- find-pairs
   [pairfn n1 n2]
   (for [h1 (:history n1)
         h2 (:history n2)
@@ -16,15 +16,19 @@
 (defprotocol Checker
   (check [this n1 n2]))
 
+(defn- split-by-interval
+  [win n1 n2]
+  (->> (find-pairs by-id n1 n2) 
+       (map (fn [[p1 p2]] (t/interval (:time p1) (:time p2))))
+       (map t/in-millis)
+       (split-with (fn [interval] (>= win interval)))))
+
 (deftype Temporal [win ok warn fail]
   Object
   (toString [this] (format "Temporal %sms ok=%s warn=%s nok=%s" win ok warn fail))
   Checker
   (check [this n1 n2]
-    (let [[passing failing] (->> (find-pairs by-id n1 n2) ; get correlations
-                                 (map (fn [[p1 p2]] (t/interval (:time p1) (:time p2))))
-                                 (map t/in-millis)
-                                 (split-with (fn [interval] (>= win interval))))]                  ; split into [(ok) (bad)]
+    (let [[passing failing] (split-by-interval win n1 n2)]                  
       {:pass passing
        :fail failing
        :status (cond (<= fail (count failing)) 'nok
