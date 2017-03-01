@@ -25,21 +25,9 @@ this:
 
 .. _sample:
 
-.. graphviz:: 
+.. graphviz:: images/intro.dot
     :caption: **A prototype of Observatory's user interface.** Yes, at this point, it's just a
               Graphviz graph.
-
-    digraph Example {
-      A[label="web-server"];
-      B[label="event-processor"];
-      C[label="journal"];
-      D[label="database"];
-  
-  
-      A->B[color="#00AA00",label="OK(pass=3/3 100%),\nCheck(within=10s,ok=3,warn=0,fail=0)"];
-      B->D[color="#AAAA00",label="WARN(pass=4/5 80%),\nCheck=(within=500ms,ok=3,warn=1,fail=2)"];
-      B->C[color="#AA0000",label="NOK(pass=1/4 25%),\nCheck=(within=1000ms,ok=3,warn=1,fail=0)"];
-    }
 
 The system in it has four nodes: ``web-server``, a root node, ``event-processor``, ``journal``, and
 ``database``. For every ``web-server`` request, we expect ``event-processor`` to have reacted within

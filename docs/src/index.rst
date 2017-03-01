@@ -3,12 +3,14 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Observatory
-===========
+Observatory - Tracing-based monitoring
+======================================
 
-This is a **prototype design document** for *Observatory*, a program that lets one monitor the status of
-information flows within a distributed system. Observatory is **not yet reality**, this is the
-initial design & specification.
+**PROTOTYPE DESIGN DOCUMENT**
+
+Observatory is a monitoring system that works using tracing. Observatory renders monitoring
+information as a graph:
+
 
 Table of Contents
 -----------------
@@ -22,10 +24,11 @@ Part I: Introduction
 ~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
 
    introduction
-   overview
+   glossary
+   tracing
    configuration
    monitor
 
