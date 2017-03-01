@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction &#8212; Observatory 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Glossary" href="glossary.html" />
+    <link rel="prev" title="Observatory - Tracing-based monitoring" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="glossary.html" title="Glossary"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Observatory - Tracing-based monitoring"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Observatory 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Introduction</a><ul>
+<li><a class="reference internal" href="#what-is-it">What is it?</a></li>
+<li><a class="reference internal" href="#why-would-i-use-it">Why would I use it?</a></li>
+<li><a class="reference internal" href="#who-is-it-for">Who is it for?</a></li>
+<li><a class="reference internal" href="#how-does-it-work">How does it work?</a></li>
+<li><a class="reference internal" href="#how-do-i-integrate-it-to-my-system">How do I integrate it to my system?</a></li>
+<li><a class="reference internal" href="#summary">Summary</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Observatory - Tracing-based monitoring</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="glossary.html"
+                        title="next chapter">Glossary</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/introduction.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="introduction">
+<span id="id1"></span><h1>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="what-is-it">
+<h2>What is it?<a class="headerlink" href="#what-is-it" title="Permalink to this headline">¶</a></h2>
+<p><strong>Observatory</strong> is a distributed tracing system that can be used to monitor traffic latencies between
+networked services.</p>
+<p>Observatory is similar to <a class="reference external" href="https://zipkin.io">Zipkin</a> or <a class="reference external" href="http://kamon.io">Kamon</a>.</p>
+<p>Observatory aggregates tracing tokens received from various inputs. These tracing tokens are used to
+render an image as seen <a class="reference internal" href="#sample"><span class="std std-ref">below</span></a>.</p>
+</div>
+<div class="section" id="why-would-i-use-it">
+<h2>Why would I use it?<a class="headerlink" href="#why-would-i-use-it" title="Permalink to this headline">¶</a></h2>
+<p>They say a picture is equal to a thousand words. Observatory displays the status of a distributed
+system as a visual graph. Observatory can be a simple auto-refreshing web-page that looks like
+this:</p>
+<div class="figure" id="id2">
+<span id="sample"></span><object data="_images/graphviz-4642bef73ef2677ec7bcba9d591d1592de9b4a4f.svg" type="image/svg+xml">
+            <p class="warning">digraph Example {
+    A[label=&quot;web-server&quot;];
+    B[label=&quot;event-processor&quot;];
+    C[label=&quot;journal&quot;];
+    D[label=&quot;database&quot;];
+    
+    
+    A-&gt;B[color=&quot;#00AA00&quot;,label=&quot;OK(pass=3/3 100%),\nCheck(within=10s,ok=3,warn=0,fail=0)&quot;];
+    B-&gt;D[color=&quot;#AAAA00&quot;,label=&quot;WARN(pass=4/5 80%),\nCheck=(within=500ms,ok=3,warn=1,fail=2)&quot;];
+    B-&gt;C[color=&quot;#AA0000&quot;,label=&quot;NOK(pass=1/4 25%),\nCheck=(within=1000ms,ok=3,warn=1,fail=0)&quot;];
+}</p></object>
+<p class="caption"><span class="caption-text"><strong>A prototype of Observatory&#8217;s user interface.</strong> Yes, at this point, it&#8217;s just a
+Graphviz graph.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+<p>The system in it has four nodes: <code class="docutils literal"><span class="pre">web-server</span></code>, a root node, <code class="docutils literal"><span class="pre">event-processor</span></code>, <code class="docutils literal"><span class="pre">journal</span></code>, and
+<code class="docutils literal"><span class="pre">database</span></code>. For every <code class="docutils literal"><span class="pre">web-server</span></code> request, we expect <code class="docutils literal"><span class="pre">event-processor</span></code> to have reacted within
+10 seconds. None of the observed requests have failed (i.e. taken more than 10s), so the status is
+marked as OK. We&#8217;ve defined a window of 3 requests out of which three must succeed in order to mark
+as OK. Since <code class="docutils literal"><span class="pre">warn=0</span></code> and <code class="docutils literal"><span class="pre">fail=0</span></code> should any of the requests fail the edge will automatically
+be marked as <code class="docutils literal"><span class="pre">NOK</span></code> (fail trumps warn).</p>
+<p>For a <code class="docutils literal"><span class="pre">event-processor</span></code> → <code class="docutils literal"><span class="pre">database</span></code> message, we expect it to react within 500ms. The size of
+the observation window is 5 requests (3+1+2). For an OK status, 3 requests are required to succeed
+within this window. One request in this window has failed. Since <code class="docutils literal"><span class="pre">warn</span></code> is set to 1, but <code class="docutils literal"><span class="pre">fail</span></code>
+is at 2, we mark the edge as <code class="docutils literal"><span class="pre">WARN</span></code>.</p>
+<p><code class="docutils literal"><span class="pre">event-processor</span></code> → <code class="docutils literal"><span class="pre">journal</span></code> is much stricter: no request in the window (3+1+0 = 4) must fail
+(<code class="docutils literal"><span class="pre">fail</span> <span class="pre">=</span> <span class="pre">0</span></code>). As can be seen, only one out of four passed the check, so it is marked as <code class="docutils literal"><span class="pre">FAIL</span></code>.</p>
+<p>Think of it as what a logging server contains, but relevant parts visualized, and the
+visualization can be customized.</p>
+</div>
+<div class="section" id="who-is-it-for">
+<h2>Who is it for?<a class="headerlink" href="#who-is-it-for" title="Permalink to this headline">¶</a></h2>
+<p>Sysadmins, developers, anyone who is interested in the status of information flows in a
+distributed system they are developing or monitoring. Observatory can be used to get a
+&#8220;high-altitude&#8221; view, using which you can identify the likely sources of problems. The typical use
+case scenario is this:</p>
+<ol class="arabic simple">
+<li>Some component in a system is failing &#8211; not receiving messages, data isn&#8217;t showing up, etc.</li>
+<li>The cause is identified, messages are missing. Where&#8217;s the broken link?</li>
+<li>Check Observatory if anything is broken.</li>
+<li>Observatory tells us the connection between <code class="docutils literal"><span class="pre">event-processor</span></code> and <code class="docutils literal"><span class="pre">journal</span></code> is broken, no events have been recorded for the requests the <code class="docutils literal"><span class="pre">web-server</span></code> component received.</li>
+<li>Investigate the problem between <code class="docutils literal"><span class="pre">event-processor</span></code> and <code class="docutils literal"><span class="pre">journal</span></code>.</li>
+</ol>
+</div>
+<div class="section" id="how-does-it-work">
+<h2>How does it work?<a class="headerlink" href="#how-does-it-work" title="Permalink to this headline">¶</a></h2>
+<p>Each component is programmed to log its messages to Observatory, associating a unique tracing token
+to a message. Whenever an event occurs in a component, the component tells Observatory about it,
+associating a unique tracing token. The component passes this event downstream. When the downstream
+component(s) have received the events, they tell Observatory about it, and Observatory correlates
+the tracing tokens and timestamps. This lets Observatory track the message rates.</p>
+<p>The <em>quality</em> of message rates is configured using <em>health checks</em>. These are customizable and can
+be based on time or count. For example, we can require a system to have a message pass through it
+within 1 second. Or we can say that whenever one component generates five events, <cite>x</cite> events must
+occur in a downstream component.</p>
+<p>If the system deviates from these health checks, the graph indicates this visually, with a red
+arrow between the nodes. For more information, see <a class="reference internal" href="glossary.html#overview"><span class="std std-ref">Glossary</span></a>.</p>
+</div>
+<div class="section" id="how-do-i-integrate-it-to-my-system">
+<h2>How do I integrate it to my system?<a class="headerlink" href="#how-do-i-integrate-it-to-my-system" title="Permalink to this headline">¶</a></h2>
+<p>You <strong>pre-configure</strong> the information flow with a <em>manifest</em>, which at its simplests, is just a list of components in the system. Each component has
+an automated mechanism, e.g., a request middleware, that performs the message sending to
+Observatory, which listens to various sources of input (HTTP, MQ, log files).
+Manifest configuration is done using a simple TOML  syntax, see</p>
+<p>For more information, see <a class="reference internal" href="configuration.html#configuration"><span class="std std-ref">Configuration</span></a>.</p>
+</div>
+<div class="section" id="summary">
+<h2>Summary<a class="headerlink" href="#summary" title="Permalink to this headline">¶</a></h2>
+<p>Observatory is</p>
+<ul class="simple">
+<li>A distributed system monitoring tool that measures message rates in the system and displays the
+rates visually as a graph</li>
+<li>Its health check mechanism can also be</li>
+<li>A tool for developers and sysadmins that care about the above information</li>
+<li>Integrated into your system using plugins that tell Observatory about messages, enabling
+measurement (see <a class="reference internal" href="glossary.html#overview"><span class="std std-ref">Glossary</span></a>)</li>
+<li>Configured using a simple TOML syntax (see <a class="reference internal" href="configuration.html#configuration"><span class="std std-ref">Configuration</span></a>) and run as a stand-alone server
+program with an optional web front-end (the graph)</li>
+</ul>
+<p>Now head over to <a class="reference internal" href="glossary.html#overview"><span class="std std-ref">Glossary</span></a> to learn more!</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="glossary.html" title="Glossary"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Observatory - Tracing-based monitoring"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Observatory 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Antoine Kalmbach. MIT License..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

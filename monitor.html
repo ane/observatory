@@ -1,0 +1,229 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>User Interface &#8212; Observatory 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Architecture" href="architecture.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="architecture.html" title="Architecture"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="configuration.html" title="Configuration"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Observatory 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">User Interface</a><ul>
+<li><a class="reference internal" href="#input-sending-events">Input: Sending events</a></li>
+<li><a class="reference internal" href="#output-getting-status">Output: Getting status</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="configuration.html"
+                        title="previous chapter">Configuration</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="architecture.html"
+                        title="next chapter">Architecture</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/monitor.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="user-interface">
+<span id="monitor"></span><h1>User Interface<a class="headerlink" href="#user-interface" title="Permalink to this headline">¶</a></h1>
+<p>The user interface of Observatory is divided into two parts: input and output. For input, we read
+events from various sourced, configured in the <a class="reference internal" href="configuration.html#manifest"><span class="std std-ref">Manifest</span></a>. The output part is the front-end,
+the graph visualization.</p>
+<div class="section" id="input-sending-events">
+<h2>Input: Sending events<a class="headerlink" href="#input-sending-events" title="Permalink to this headline">¶</a></h2>
+<p>Sending input to Observatory is easy. At this stage, you just send an event via HTTP.</p>
+<p>Here is a sample payload:</p>
+<div class="highlight-json"><div class="highlight"><pre><span></span><span class="p">{</span>
+   <span class="nt">&quot;origin&quot;</span><span class="p">:</span> <span class="s2">&quot;web-server&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;tracing&quot;</span><span class="p">:</span> <span class="s2">&quot;1234abcd&quot;</span><span class="p">,</span>
+   <span class="nt">&quot;timestamp&quot;</span><span class="p">:</span> <span class="s2">&quot;2016-11-13T22:00:00+02:00&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The fields are the following:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">origin:</th><td class="field-body">The application where the event occurred</td>
+</tr>
+<tr class="field-even field"><th class="field-name">tracing:</th><td class="field-body">The tracing token <strong>unique for this event</strong></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">timestamp:</th><td class="field-body">A <a class="reference external" href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601</a> date when the event occurred.</td>
+</tr>
+</tbody>
+</table>
+<p>This payload can be sent to Observatory with a simple POST request to the <code class="docutils literal"><span class="pre">/events</span></code> endpoint.</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>$ curl -X POST -H &#39;Content-type: application/json&#39; -d@event.json http://observatory/events
+
+HTTP/1.1 202 Accepted
+Server: Observatory 0.1
+Date: Sun, 13 Nov 2016 21:46:08 GMT
+Content-Type: application/json; charset=utf-8
+</pre></div>
+</div>
+</div>
+<div class="section" id="output-getting-status">
+<h2>Output: Getting status<a class="headerlink" href="#output-getting-status" title="Permalink to this headline">¶</a></h2>
+<p>The <em>monitor</em> is the Observatory front-end. As we saw in the <a class="reference internal" href="introduction.html#sample"><span class="std std-ref">example graph</span></a>, at this
+point, the interface is just a constantly refreshing Graphviz rendering of the graph.</p>
+<p>Internally, Observatory is accessed with a REST API. If we configure a system called
+<code class="docutils literal"><span class="pre">my-sample-system</span></code>, we get its graph as JSON like this:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>$ curl -i http://observatory/streams/my-sample-system
+HTTP/1.1 200 OK
+Server: Observatory 0.1
+Date: Sun, 13 Nov 2016 21:46:08 GMT
+Content-Type: application/json; charset=utf-8
+
+{
+  &quot;name&quot;: &quot;my-sample-system&quot;,
+  &quot;description&quot;: &quot;blah blah&quot;,
+  &quot;graph&quot;: [
+    {
+      &quot;from&quot;: &quot;web-server&quot;,
+      &quot;to&quot;: &quot;event-processor&quot;,
+      &quot;status&quot;: &quot;OK&quot;,
+      &quot;pass&quot;: 3,
+      &quot;total&quot;: 3,
+      &quot;last&quot;: &quot;2016-11-14T11:33:32.000Z&quot;,
+      &quot;failed&quot;: &quot;2016-11-12T17:22:32+02:00&quot;,
+      &quot;check&quot;: {
+        &quot;within&quot;: 10,
+        &quot;unit&quot;: &quot;seconds&quot;,
+        &quot;ok&quot;: 3,
+        &quot;warn&quot;: 0,
+        &quot;fail&quot;: 0
+      }
+    },
+    {
+      &quot;from&quot;: &quot;event-processor&quot;,
+      &quot;to&quot;: &quot;journal&quot;,
+      &quot;status&quot;: &quot;NOK&quot;,
+      &quot;pass&quot;: 1,
+      &quot;total&quot;: 4,
+      &quot;last&quot;: &quot;2016-11-14T11:00:00+02:00&quot;
+      &quot;failed&quot;: &quot;2016-11-14T11:33:32+02:00&quot;,
+      &quot;check&quot;: {
+        &quot;within&quot;: 500,
+        &quot;unit&quot;: &quot;msec&quot;,
+        &quot;ok&quot;: 3,
+        &quot;warn&quot;: 1,
+        &quot;fail&quot;: 0
+      }
+    },
+    {
+      &quot;from&quot;: &quot;event-processor&quot;,
+      &quot;to&quot;: &quot;database&quot;,
+      &quot;status&quot;: &quot;WARN&quot;,
+      &quot;pass&quot;: 4,
+      &quot;total&quot;: 5,
+      &quot;last&quot;: &quot;2016-11-14T12:00:00+02:00&quot;
+      &quot;failed&quot;: &quot;2016-11-14T12:01:22+02:00&quot;,
+      &quot;check&quot;: {
+        &quot;within&quot;: 500,
+        &quot;unit&quot;: &quot;msec&quot;,
+        &quot;ok&quot;: 3,
+        &quot;warn&quot;: 1,
+        &quot;fail&quot;: 2
+      }
+    }
+  ]
+}
+</pre></div>
+</div>
+<p>This can be then rendered in the front-end, which is just a dead simple HTTP server rendering this
+graph to a Graphviz page, with a meta refresh directive of 1 second.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="architecture.html" title="Architecture"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="configuration.html" title="Configuration"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Observatory 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Antoine Kalmbach. MIT License..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

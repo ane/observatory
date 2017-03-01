@@ -1,0 +1,303 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Glossary &#8212; Observatory 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Monitoring" href="tracing.html" />
+    <link rel="prev" title="Introduction" href="introduction.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="tracing.html" title="Monitoring"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Observatory 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Glossary</a><ul>
+<li><a class="reference internal" href="#node">Node</a><ul>
+<li><a class="reference internal" href="#attributes">Attributes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#edge">Edge</a><ul>
+<li><a class="reference internal" href="#id3">Attributes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#stream">Stream</a><ul>
+<li><a class="reference internal" href="#id5">Attributes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#health-check">Health check</a><ul>
+<li><a class="reference internal" href="#id7">Attributes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#event">Event</a><ul>
+<li><a class="reference internal" href="#id9">Attributes</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tracing-token">Tracing token</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="introduction.html"
+                        title="previous chapter">Introduction</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="tracing.html"
+                        title="next chapter">Monitoring</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/glossary.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="glossary">
+<span id="overview"></span><h1>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h1>
+<p>The mechanism is simple. Observatory listens to an input for events coming from different
+services. Each individual service is called a <em>node</em>. A group of nodes is called a <em>stream</em>. To form
+these groups, nodes are connected via <em>edges</em>. An edge is an implied connection between two nodes:
+it can be, e.g., a web server talking to a logging mechanism, or an event system pushing events
+downstream to a message queue.</p>
+<p>The <em>movement</em> on a stream will be initiated by the root node. The message, which is said to pass
+throughout a stream, is tagged with a <strong>tracing ID</strong>. This way, the message can be tracked as it
+moves down the stream. All of these pieces are called <em>elements</em>, while checks are <em>behaviours</em>.</p>
+<p>Below is a helpful glossary of the terms.</p>
+<dl class="glossary docutils">
+<dt id="term-node"><a class="reference internal" href="#node"><span class="std std-ref">Node</span></a></dt>
+<dd>An individual node in the network, e.g., a web service.</dd>
+<dt id="term-edge"><a class="reference internal" href="#edge"><span class="std std-ref">Edge</span></a></dt>
+<dd>A connection between two nodes, e.g., from a web service to a database, or from a database to
+a logging system</dd>
+<dt id="term-2"><a class="reference internal" href="#edge"><span class="std std-ref">Edge</span></a></dt>
+<dd>A group of connected edges that define an abstract data stream, e.g. from a web service to a
+database to a logging system</dd>
+<dt id="term-health-check"><a class="reference internal" href="#health-check"><span class="std std-ref">Health check</span></a></dt>
+<dd>How to identify whether individual edge traffic is healthy or not</dd>
+<dt id="term-event"><a class="reference internal" href="#event"><span class="std std-ref">Event</span></a></dt>
+<dd>Information used to tell Observatory traffic has occurred</dd>
+<dt id="term-tracing-token"><a class="reference internal" href="#tracing-token"><span class="std std-ref">Tracing token</span></a></dt>
+<dd>A unique tracing id that can be used throughout the stream to identify data moving accross
+the stream</dd>
+</dl>
+<div class="section" id="node">
+<span id="id1"></span><h2>Node<a class="headerlink" href="#node" title="Permalink to this headline">¶</a></h2>
+<object data="_images/graphviz-33c8289f7874f250878219d1c7362fd0c8a6c7c3.svg" type="image/svg+xml">
+            <p class="warning">digraph {
+  &quot;web-server&quot;;
+}</p></object>
+<p>A node is an individual component in the stream. It can be a web service or any program that reads
+input from one place and produces output to another.</p>
+<div class="section" id="attributes">
+<h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">name:</th><td class="field-body">A unique node identifier</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="edge">
+<span id="id2"></span><h2>Edge<a class="headerlink" href="#edge" title="Permalink to this headline">¶</a></h2>
+<object data="_images/graphviz-98b3b022eb5053aa2b5a1f713f97d8db0efa7c8e.svg" type="image/svg+xml">
+            <p class="warning">digraph {
+  rankdir=LR;
+  &quot;web-server&quot; -&gt; &quot;event-processor&quot;;
+}</p></object>
+<p>An edge is a <em>proof of connectivity</em> between two nodes. You can define, e.g., that a web service <cite>A</cite>
+talks to web service <cite>B</cite> and by observing traffic between these two nodes, you can identify some</p>
+<div class="section" id="id3">
+<h3>Attributes<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">name:</th><td class="field-body">The name of this connection (e.g. &#8220;web server to database&#8221;)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">from:</th><td class="field-body">The source node of this edge</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">to:</th><td class="field-body">The destination node of this edge</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="stream">
+<span id="id4"></span><h2>Stream<a class="headerlink" href="#stream" title="Permalink to this headline">¶</a></h2>
+<object data="_images/graphviz-b8d0f008407b9afc7f6d1d3656e2dc18d0b03445.svg" type="image/svg+xml">
+            <p class="warning">digraph {
+  rankdir=LR;
+  &quot;web-server&quot; -&gt; &quot;event-processor&quot; -&gt; &quot;data-warehouse&quot;;
+}</p></object>
+<p>A stream is a group of connected edges, a pipeline of nodes. It represents the movement of
+individual messages within an observed system. The above figure illustrates, in very broad terms,
+that each message from <code class="docutils literal"><span class="pre">web-server</span></code> will move to <code class="docutils literal"><span class="pre">event-processor</span></code> and from there to
+<code class="docutils literal"><span class="pre">data-warehouse</span></code>.</p>
+<div class="section" id="id5">
+<h3>Attributes<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h3>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">name:</th><td class="field-body">The description of the stream</td>
+</tr>
+<tr class="field-even field"><th class="field-name">node:</th><td class="field-body">The nodes inside the stream</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">edges:</th><td class="field-body">The edges of the stream</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="health-check">
+<span id="id6"></span><h2>Health check<a class="headerlink" href="#health-check" title="Permalink to this headline">¶</a></h2>
+<p>Monitoring stream traffic is of little interest if you don&#8217;t define <em>how</em> traffic should move. For
+example, from observational data (by analyzing logs, etc.) we can say that requests from
+<code class="docutils literal"><span class="pre">web-server</span></code> should reach <code class="docutils literal"><span class="pre">event-processor</span></code> within 300ms. We define that the edge traffic is &#8220;OK&#8221;
+when, for a hundred requests, or any such number, <em>eighty</em> must make it to <code class="docutils literal"><span class="pre">event-processor</span></code>. in this
+time. If this doesn&#8217;t happen, we say that there is something wrong in the connection.</p>
+<p>A health check defines three thresholds: the OK threshold, the WARN threshold, and the FAIL
+threshold. An individual observation window is the sum of the thresholds. If you define 3 for all
+thresholds, this would create a sliding observation window of 9 events.**</p>
+<p><strong>Note</strong>: You must have <cite>OK &gt;= FAIL &gt;= WARN</cite>, otherwise the observations don&#8217;t make sense.</p>
+<div class="section" id="id7">
+<h3>Attributes<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h3>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">within:</th><td class="field-body">The time window for the edge</td>
+</tr>
+<tr class="field-even field"><th class="field-name">unit:</th><td class="field-body">The time unit for the window (see <a class="reference internal" href="configuration.html#units"><span class="std std-ref">Accepted time units</span></a>)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">ok:</th><td class="field-body">Minimum events that should pass in order to trigger OK</td>
+</tr>
+<tr class="field-even field"><th class="field-name">warn:</th><td class="field-body">Minimum events that should pass in order to trigger OK</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">fail:</th><td class="field-body">Minimum events that should pass in order to trigger fail</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="event">
+<span id="id8"></span><h2>Event<a class="headerlink" href="#event" title="Permalink to this headline">¶</a></h2>
+<p>An event is a signal to Observatory that a node has registered traffic.</p>
+<div class="section" id="id9">
+<h3>Attributes<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h3>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">timestamp:</th><td class="field-body">A RFC3339 date-time or 64-bit integer in microseconds from Unix epoch time</td>
+</tr>
+<tr class="field-even field"><th class="field-name">node:</th><td class="field-body">The node from which the event is sent</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">tracing:</th><td class="field-body">The tracing token of this event</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="section" id="tracing-token">
+<span id="id10"></span><h2>Tracing token<a class="headerlink" href="#tracing-token" title="Permalink to this headline">¶</a></h2>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">format:</th><td class="field-body">A unique string, preferably a <a class="reference external" href="https://en.wikipedia.org/wiki/Universally_unique_identifier">UUID</a>.</td>
+</tr>
+</tbody>
+</table>
+<p>The tracing token is used to identify the movement of a message. When the message originates at the
+<em>root node</em>, the root node attaches a unique tracing token to the message. When that message is
+passed to the next node, e.g., in a HTTP/MQ header, the node uses that tracing token to inform
+observatory. That way, Observatory can identify that messages are moving successfully.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="tracing.html" title="Monitoring"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Observatory 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Antoine Kalmbach. MIT License..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

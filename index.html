@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Observatory - Tracing-based monitoring &#8212; Observatory 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Introduction" href="introduction.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Observatory 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Observatory - Tracing-based monitoring</a><ul>
+<li><a class="reference internal" href="#table-of-contents">Table of Contents</a><ul>
+<li><a class="reference internal" href="#part-i-introduction">Part I: Introduction</a></li>
+<li><a class="reference internal" href="#part-ii-architecture">Part II: Architecture</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="introduction.html"
+                        title="next chapter">Introduction</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="observatory-tracing-based-monitoring">
+<h1>Observatory - Tracing-based monitoring<a class="headerlink" href="#observatory-tracing-based-monitoring" title="Permalink to this headline">¶</a></h1>
+<p><strong>PROTOTYPE DESIGN DOCUMENT</strong></p>
+<p>Observatory is a monitoring system that works using tracing. Observatory renders monitoring
+information as a graph:</p>
+<div class="section" id="table-of-contents">
+<h2>Table of Contents<a class="headerlink" href="#table-of-contents" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="part-i-introduction">
+<h3>Part I: Introduction<a class="headerlink" href="#part-i-introduction" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="introduction.html">Introduction</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#what-is-it">What is it?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#why-would-i-use-it">Why would I use it?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#who-is-it-for">Who is it for?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#how-does-it-work">How does it work?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#how-do-i-integrate-it-to-my-system">How do I integrate it to my system?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="introduction.html#summary">Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="glossary.html">Glossary</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="glossary.html#node">Node</a></li>
+<li class="toctree-l2"><a class="reference internal" href="glossary.html#edge">Edge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="glossary.html#stream">Stream</a></li>
+<li class="toctree-l2"><a class="reference internal" href="glossary.html#health-check">Health check</a></li>
+<li class="toctree-l2"><a class="reference internal" href="glossary.html#event">Event</a></li>
+<li class="toctree-l2"><a class="reference internal" href="glossary.html#tracing-token">Tracing token</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tracing.html">Monitoring</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tracing.html#tracing">Tracing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tracing.html#correlation">Correlation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#manifest">Manifest</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#streams">Streams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#edges">Edges</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#checks">Checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="configuration.html#example">Example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="monitor.html">User Interface</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="monitor.html#input-sending-events">Input: Sending events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="monitor.html#output-getting-status">Output: Getting status</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="part-ii-architecture">
+<h3>Part II: Architecture<a class="headerlink" href="#part-ii-architecture" title="Permalink to this headline">¶</a></h3>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="introduction.html" title="Introduction"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">Observatory 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Antoine Kalmbach. MIT License..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

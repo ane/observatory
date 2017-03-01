@@ -1,0 +1,451 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Configuration &#8212; Observatory 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="User Interface" href="monitor.html" />
+    <link rel="prev" title="Monitoring" href="tracing.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="monitor.html" title="User Interface"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tracing.html" title="Monitoring"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Observatory 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Configuration</a><ul>
+<li><a class="reference internal" href="#manifest">Manifest</a></li>
+<li><a class="reference internal" href="#streams">Streams</a></li>
+<li><a class="reference internal" href="#edges">Edges</a></li>
+<li><a class="reference internal" href="#checks">Checks</a></li>
+<li><a class="reference internal" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="tracing.html"
+                        title="previous chapter">Monitoring</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="monitor.html"
+                        title="next chapter">User Interface</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/configuration.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="configuration">
+<span id="id1"></span><h1>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h1>
+<p>Observatory is configured with a manifest. Its syntax is a simple <a class="reference external" href="https://github.com/toml-lang/toml">TOML</a> syntax. Here is an example.</p>
+<div class="section" id="manifest">
+<span id="id2"></span><h2>Manifest<a class="headerlink" href="#manifest" title="Permalink to this headline">¶</a></h2>
+<p>The Observatory configuration lives in the manifest file, usually a file called
+<code class="docutils literal"><span class="pre">config.toml</span></code>. It will contain some useful variables, unrelated to the content of the system
+itself.</p>
+<p>For Observatory to function, we need the following:</p>
+<ul class="simple">
+<li>An input source for events, e.g. a HTTP server, or a message queue</li>
+<li>An output interface, e.g. a HTTP server</li>
+</ul>
+<p>This is an example configuration.</p>
+<div class="highlight-ini"><div class="highlight"><pre><span></span><span class="na">name</span> <span class="o">=</span> <span class="s">&quot;My Observatory&quot;</span>
+<span class="na">description</span> <span class="o">=</span> <span class="s">&quot;blah blah&quot;</span>
+
+<span class="c1"># create a HTTP server</span>
+<span class="k">[input.http]</span>
+<span class="na">interface</span> <span class="o">=</span> <span class="s">&quot;localhost&quot;</span>
+<span class="na">port</span> <span class="o">=</span> <span class="s">&quot;8080&quot;</span>
+<span class="na">path</span> <span class="o">=</span> <span class="s">&quot;/events&quot;</span>
+
+<span class="c1"># listen from rabbitmq exchange &#39;observatory&#39;</span>
+<span class="c1"># with routing key &#39;observatory.input&#39;</span>
+<span class="k">[input.rabbitmq]</span>
+<span class="na">address</span> <span class="o">=</span> <span class="s">&quot;localhost&quot;</span>
+<span class="na">port</span> <span class="o">=</span> <span class="s">5672</span>
+<span class="na">username</span> <span class="o">=</span> <span class="s">&quot;rabbit&quot;</span>
+<span class="na">password</span> <span class="o">=</span> <span class="s">&quot;asdfasdf&quot;</span>
+<span class="na">exchange</span> <span class="o">=</span> <span class="s">&quot;observatory&quot;</span>
+<span class="na">exchangeType</span> <span class="o">=</span> <span class="s">&quot;topic&quot;</span>
+<span class="na">routingKey</span> <span class="o">=</span> <span class="s">&quot;observatory.input&quot;</span>
+
+<span class="c1"># read from ActiveMQ using Camel connector</span>
+<span class="k">[input.camel]</span>
+<span class="na">url</span> <span class="o">=</span> <span class="s">&quot;activemq://localhost:8888/observatory.in&quot;</span>
+
+<span class="c1"># frontend HTTP server</span>
+<span class="k">[output.http]</span>
+<span class="na">interface</span> <span class="o">=</span> <span class="s">&quot;localhost&quot;</span>
+<span class="na">port</span> <span class="o">=</span> <span class="s">&quot;9090&quot;</span>
+</pre></div>
+</div>
+<p>This will start a HTTP server that listens for incoming event packets in <code class="docutils literal"><span class="pre">/events</span></code> as POST
+requests and a RabbitMQ queue binding for the queue <code class="docutils literal"><span class="pre">observatory.input</span></code>. It will also start a HTTP
+server for the front-end, providing a REST API front-end.</p>
+<p>Observatory is meant to be agnostic in terms of input sources, it won&#8217;t be tied down to any central
+mechanism, but initially it will support a HTTP and a MQ of some kind (probably RabbitMQ).</p>
+<p>Do note that the inputs and outputs are entirely optional, but a configuration with either no inputs
+or no outputs is rather silly.</p>
+<p>After this configuration, we can configure streams.</p>
+</div>
+<div class="section" id="streams">
+<h2>Streams<a class="headerlink" href="#streams" title="Permalink to this headline">¶</a></h2>
+<p>A part of the system we wish to monitor for data flows is called a <em>stream</em>. This is an example:</p>
+<div class="highlight-ini"><div class="highlight"><pre><span></span><span class="k">[[stream]]</span>
+<span class="na">name</span> <span class="o">=</span> <span class="s">&quot;my-sample-stream&quot;</span>
+<span class="na">nodes</span> <span class="o">=</span> <span class="s">[&quot;web-server&quot;, &quot;event-processor&quot;, &quot;journal&quot;, &quot;database&quot;]</span>
+</pre></div>
+</div>
+<p>A configuration like this is absolutely minimal. Once Observatory is launched for the first time, it
+will look like this:</p>
+<object data="_images/graphviz-96ae148e51a6f32f00be33ad59f2c213e7f9f8ae.svg" type="image/svg+xml">
+            <p class="warning">digraph foo {
+  A[label=&quot;web-server&quot;];
+  B[label=&quot;event-processor&quot;];
+  C[label=&quot;journal&quot;];
+  D[label=&quot;database&quot;];
+}</p></object>
+<p>This stream is still in an <em>unobserved</em> state, because we haven&#8217;t seen any data flowing in it yet.</p>
+<p>Such a minimal configuration will result in an edge getting rendered when there is traffic, but the
+edge will never disappear, since Observatory has understood that traffic has occurred <cite>at least
+once</cite>. So, if <code class="docutils literal"><span class="pre">web-server</span></code> gets a request and sends <code class="docutils literal"><span class="pre">(web-server,foo,TIME1)</span></code> to Observatory, nothing
+will happen, except that web-server is rendered as having sent traffic:</p>
+<div class="figure" id="id3">
+<object data="_images/graphviz-e8cba24b21c7d9fabb83c2e4009d26df58b37a9e.svg" type="image/svg+xml">
+            <p class="warning">digraph foo {
+  A[label=&quot;web-server&quot;,color=&quot;#00AAAA&quot;];
+  B[label=&quot;event-processor&quot;];
+  C[label=&quot;journal&quot;];
+  D[label=&quot;database&quot;];
+}</p></object>
+<p class="caption"><span class="caption-text"><em>note the teal color around web-server, indicating an unknown downstream status</em></span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+<p>Lets assume traffic <em>has</em> occurred, whereby <code class="docutils literal"><span class="pre">event-processor</span></code> has received that message from
+upstream, with the tracing token <code class="docutils literal"><span class="pre">foo</span></code>, sending <code class="docutils literal"><span class="pre">(event-processor,foo,TIME2)</span></code>. Observatory does
+some internal calculations, notes the equal tokens and successive time stamps, giving us this:</p>
+<object data="_images/graphviz-9c10420ec8a40b7562c05e183f67906e01bdc129.svg" type="image/svg+xml">
+            <p class="warning">digraph foo {
+  rankdir=LR;
+  A[label=&quot;web-server&quot;];
+  B[label=&quot;event-processor&quot;];
+  C[label=&quot;journal&quot;];
+  D[label=&quot;database&quot;];
+
+  A-&gt;B[label=&quot;OK(pass=1/1 100%)&quot;,color=&quot;#00AA00&quot;];
+}</p></object>
+<p>Lets assume the same thing happens for the other nodes, <code class="docutils literal"><span class="pre">journal</span></code> and <code class="docutils literal"><span class="pre">database</span></code>, giving this:</p>
+<object data="_images/graphviz-580c6b6bf22f7af6c1eca542d7f46e1b45240ed2.svg" type="image/svg+xml">
+            <p class="warning">digraph foo {
+  rankdir=LR;
+  A[label=&quot;web-server&quot;];
+  B[label=&quot;event-processor&quot;];
+  C[label=&quot;journal&quot;];
+  D[label=&quot;database&quot;];
+
+  A-&gt;B[label=&quot;OK(pass=1/1 100%)&quot;,color=&quot;#00AA00&quot;];
+  B-&gt;C[label=&quot;OK(pass=1/1 100%)&quot;,color=&quot;#00AA00&quot;];
+  B-&gt;D[label=&quot;OK(pass=1/1 100%)&quot;,color=&quot;#00AA00&quot;];
+}</p></object>
+<p>This information tells us traffic has occured <em>once</em> between all the nodes. This configuration is
+useless! Let&#8217;s configure some <em>edges</em>.</p>
+</div>
+<div class="section" id="edges">
+<h2>Edges<a class="headerlink" href="#edges" title="Permalink to this headline">¶</a></h2>
+<p>An <strong>edge</strong> means communication between two nodes. It is configured thusly:</p>
+<div class="highlight-ini"><div class="highlight"><pre><span></span><span class="k">[[stream.edges]]</span>
+<span class="na">name</span> <span class="o">=</span> <span class="s">&quot;http traffic sent to processor&quot;</span>
+<span class="na">from</span> <span class="o">=</span> <span class="s">&quot;web-server&quot;</span>
+<span class="na">to</span> <span class="o">=</span> <span class="s">&quot;event-processor&quot;</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">name:</th><td class="field-body">A description of the edge</td>
+</tr>
+<tr class="field-even field"><th class="field-name">from:</th><td class="field-body">Edge start node ID</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">to:</th><td class="field-body">Edge destination node ID</td>
+</tr>
+</tbody>
+</table>
+<p>The node IDs are matched against sent tracing information. An edge like above will define two nodes:
+<code class="docutils literal"><span class="pre">web-server</span></code> and <code class="docutils literal"><span class="pre">event-processor</span></code>. Node ID matching in tracing is <strong>case sensitive</strong>.</p>
+<p>You may guess that an edge without <strong>health checks</strong> is useless, because this doesn&#8217;t really tell us
+what to look at. So for this we need health checks.</p>
+</div>
+<div class="section" id="checks">
+<h2>Checks<a class="headerlink" href="#checks" title="Permalink to this headline">¶</a></h2>
+<p>Health checking means that data must flow in the stream under a certain time period. Health checks
+generally possess a <em>kind</em> and <em>thresholds</em>. The kind is what metrics are used to define the health
+check, and the threshold defines how many times the check must succeed or fail until a change is
+triggered.</p>
+<p>If we have an edge <code class="docutils literal"><span class="pre">(web-server,event-processor)</span></code>, we can define that if <code class="docutils literal"><span class="pre">web-server</span></code> receives a
+request, Journal must correlate it within <code class="docutils literal"><span class="pre">N</span></code> seconds (or any other time unit).</p>
+<p>The syntax for a temporal health check is this:</p>
+<div class="highlight-ini"><div class="highlight"><pre><span></span><span class="k">[[stream.edges]]</span>
+<span class="na">name</span> <span class="o">=</span> <span class="s">&quot;http traffic sent to processor&quot;</span>
+<span class="na">from</span> <span class="o">=</span> <span class="s">&quot;web-server&quot;</span>
+<span class="na">to</span> <span class="o">=</span> <span class="s">&quot;event-processor&quot;</span>
+
+  <span class="k">[stream.edges.check]</span>
+  <span class="na">kind</span> <span class="o">=</span> <span class="s">&quot;time&quot;</span>
+<span class="s">  within = 500</span>
+<span class="s">  unit = msec</span>
+<span class="s">  ok = 3</span>
+<span class="s">  warn = 0</span>
+<span class="s">  nok = 1</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">within:</th><td class="field-body">The time window as a number</td>
+</tr>
+<tr class="field-even field"><th class="field-name">unit:</th><td class="field-body">The time unit (see <a class="reference internal" href="#units"><span class="std std-ref">Accepted time units</span></a>)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">ok:</th><td class="field-body"><em>Optional</em> How many times the check must succeed before setting OK status (default: 1)</td>
+</tr>
+<tr class="field-even field"><th class="field-name">nok:</th><td class="field-body"><em>Optional</em> How many failures we allow before setting NOK status (default: 0)</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">warn:</th><td class="field-body"><em>Optional</em> How many failures we allow before setting WARN status (default: 0). <strong>Note:</strong> if
+you set this field, Observatory will slap you if you set <code class="docutils literal"><span class="pre">warn</span> <span class="pre">&gt;</span> <span class="pre">nok</span></code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Once data starts flowing, and we&#8217;ve received four requests, of which all have passed, we get an output like this:</p>
+<object data="_images/graphviz-af0e7d57bdff1592f625efc2dabc6dbc12853b2a.svg" type="image/svg+xml">
+            <p class="warning">digraph foo {
+  rankdir=LR;
+  A[label=&quot;web-server&quot;];
+  B[label=&quot;event-processor&quot;];
+
+  A-&gt;B[color=&quot;#00AA00&quot;,label=&quot;OK(pass=4/4 100%)\nCheck(ok=3,warn=0,fail=1)&quot;];
+}</p></object>
+<p>A configuration like this can be defined between any two nodes in the graph, and there can be any
+number of them. The <code class="docutils literal"><span class="pre">from</span></code> and <code class="docutils literal"><span class="pre">to</span></code> fields are limited to the configured nodes.</p>
+<table border="1" class="docutils" id="id4">
+<span id="units"></span><caption><span class="caption-text">Accepted time units</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col width="28%" />
+<col width="73%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Unit</th>
+<th class="head">Accepted inputs</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>year</td>
+<td>year, y</td>
+</tr>
+<tr class="row-odd"><td>month</td>
+<td>month, mo</td>
+</tr>
+<tr class="row-even"><td>day</td>
+<td>day, d</td>
+</tr>
+<tr class="row-odd"><td>hour</td>
+<td>hour, h</td>
+</tr>
+<tr class="row-even"><td>minute</td>
+<td>minute, min, m</td>
+</tr>
+<tr class="row-odd"><td>second</td>
+<td>second, sec, s</td>
+</tr>
+<tr class="row-even"><td>millisecond</td>
+<td>millisecond, msec, millis, ms</td>
+</tr>
+<tr class="row-odd"><td>microsecond</td>
+<td>microsecond, usec, us, μs</td>
+</tr>
+<tr class="row-even"><td>nanosecond</td>
+<td>nanosecond, nsec, ns</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>This is how the edge in the example figure was configured, in <a class="reference internal" href="introduction.html#sample"><span class="std std-ref">the example</span></a>:</p>
+<div class="highlight-ini" id="example-config"><div class="highlight"><pre><span></span><span class="k">[[stream]]</span>
+<span class="na">name</span> <span class="o">=</span> <span class="s">&quot;my-sample-system&quot;</span>
+<span class="na">nodes</span> <span class="o">=</span> <span class="s">[&quot;web-server&quot;, &quot;event-processor&quot;, &quot;journal&quot;, &quot;database&quot;]</span>
+
+    <span class="k">[[stream.edges]]</span>
+    <span class="na">name</span> <span class="o">=</span> <span class="s">&quot;web server to event processor&quot;</span>
+<span class="s">    from = &quot;web-server&quot;</span>
+<span class="s">    to = &quot;event-processor&quot;</span>
+
+        <span class="k">[stream.edges.check]</span>
+        <span class="na">within</span> <span class="o">=</span> <span class="s">10</span>
+<span class="s">        unit = &quot;sec&quot;</span>
+<span class="s">        min = 3</span>
+<span class="s">        warn = 0</span>
+<span class="s">        fail = 0</span>
+
+    <span class="k">[[stream.edges]]</span>
+    <span class="na">name</span> <span class="o">=</span> <span class="s">&quot;event-processor to database&quot;</span>
+<span class="s">    from = &quot;event-processor&quot;</span>
+<span class="s">    to = &quot;database&quot;</span>
+
+        <span class="k">[stream.edges.check]</span>
+        <span class="na">within</span> <span class="o">=</span> <span class="s">500</span>
+<span class="s">        unit = &quot;ms&quot;</span>
+<span class="s">        min = 3</span>
+<span class="s">        warn = 1</span>
+<span class="s">        fail = 2</span>
+
+    <span class="k">[[stream.edges]]</span>
+    <span class="na">name</span> <span class="o">=</span> <span class="s">&quot;event-processor to journal&quot;</span>
+<span class="s">    from = &quot;event-processor&quot;</span>
+<span class="s">    to = &quot;journal&quot;</span>
+
+        <span class="k">[stream.edges.check]</span>
+        <span class="na">within</span> <span class="o">=</span> <span class="s">500</span>
+<span class="s">        unit = &quot;ms&quot;</span>
+<span class="s">        min = 3</span>
+<span class="s">        warn = 0</span>
+<span class="s">        fail = 0</span>
+</pre></div>
+</div>
+<p>If you can&#8217;t make sense of <a class="reference external" href="https://github.com/toml-lang/toml">TOML</a>, here&#8217;s the equivalent JSON:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>&quot;stream&quot;: [{
+    &quot;edges&quot;: [
+      {
+        &quot;check&quot;: {
+          &quot;fail&quot;: 0,
+          &quot;min&quot;: 3,
+          &quot;unit&quot;: &quot;sec&quot;,
+          &quot;warn&quot;: 0,
+          &quot;within&quot;: 10
+        },
+        &quot;from&quot;: &quot;web-server&quot;,
+        &quot;name&quot;: &quot;web server to event processor&quot;,
+        &quot;to&quot;: &quot;event-processor&quot;
+      },
+      {
+        &quot;check&quot;: {
+          &quot;fail&quot;: 2,
+          &quot;min&quot;: 3,
+          &quot;unit&quot;: &quot;ms&quot;,
+          &quot;warn&quot;: 1,
+          &quot;within&quot;: 500
+        },
+        &quot;from&quot;: &quot;event-processor&quot;,
+        &quot;name&quot;: &quot;event-processor to database&quot;,
+        &quot;to&quot;: &quot;database&quot;
+      },
+      {
+        &quot;check&quot;: {
+          &quot;fail&quot;: 0,
+          &quot;min&quot;: 3,
+          &quot;unit&quot;: &quot;ms&quot;,
+          &quot;warn&quot;: 0,
+          &quot;within&quot;: 500
+        },
+        &quot;from&quot;: &quot;event-processor&quot;,
+        &quot;name&quot;: &quot;event-processor to journal&quot;,
+        &quot;to&quot;: &quot;journal&quot;
+      }
+    ],
+    &quot;name&quot;: &quot;my-sample-system&quot;,
+    &quot;nodes&quot;: [
+      &quot;web-server&quot;,
+      &quot;event-processor&quot;,
+      &quot;journal&quot;,
+      &quot;database&quot;
+    ]
+  }
+]}
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="monitor.html" title="User Interface"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tracing.html" title="Monitoring"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Observatory 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Antoine Kalmbach. MIT License..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Monitoring &#8212; Observatory 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configuration" href="configuration.html" />
+    <link rel="prev" title="Glossary" href="glossary.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="configuration.html" title="Configuration"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="glossary.html" title="Glossary"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Observatory 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Monitoring</a><ul>
+<li><a class="reference internal" href="#tracing">Tracing</a><ul>
+<li><a class="reference internal" href="#remember-asynchrony">Remember asynchrony</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#correlation">Correlation</a><ul>
+<li><a class="reference internal" href="#observation-windows">Observation windows</a></li>
+<li><a class="reference internal" href="#reliability-considerations">Reliability considerations</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="glossary.html"
+                        title="previous chapter">Glossary</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="configuration.html"
+                        title="next chapter">Configuration</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tracing.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="monitoring">
+<h1>Monitoring<a class="headerlink" href="#monitoring" title="Permalink to this headline">¶</a></h1>
+<p>Observatory monitoring is based on two discrete steps: <strong>tracing</strong> and <strong>correlation</strong>. Tracing is
+done by nodes. Correlation is internal to Observatory, it&#8217;s how it couples individual events
+together, using the tracing tokens.</p>
+<div class="section" id="tracing">
+<h2>Tracing<a class="headerlink" href="#tracing" title="Permalink to this headline">¶</a></h2>
+<p>Initially, we configure a <em>stream</em>. A stream is a directed acyclic graph (DAG) that models the flow
+of information in a distributed system. So if our system consists of two services, <code class="docutils literal"><span class="pre">web-service</span></code> and
+<code class="docutils literal"><span class="pre">event-processor</span></code>, it will initially look like this:</p>
+<object data="_images/graphviz-3b18ebc6c7d73d77d18118ee8bd0051fec4b3719.svg" type="image/svg+xml">
+            <p class="warning">digraph {
+  rankdir=TB;
+  &quot;web-server&quot;; &quot;event-processor&quot;;
+}</p></object>
+<p>We model this in the configuration as a stream in which the elements are defined as <code class="docutils literal"><span class="pre">[&quot;web-server&quot;,</span>
+<span class="pre">&quot;event-processor&quot;]</span></code>. This is configured using the following syntax:</p>
+<div class="highlight-none"><div class="highlight"><pre><span></span>[[stream]]
+name = &quot;my-example-stream&quot;
+nodes = [&quot;web-server&quot;, &quot;event-processor&quot;]
+</pre></div>
+</div>
+<p>Streams are composed of nodes and edges. A node is identified by a unique UTF-8 string. An edge is a
+pair between two distinct nodes. Defining an edge means configuring the rate of monitored
+information flow.</p>
+<p>How all of this works can be illustrated with a sequence diagram:</p>
+<p class="plantuml">
+<object data="_images/plantuml-b0465b52f81c1813e1eb9da615830d2c41087e49.svg" type="image/svg+xml" style="width:713px;height:316px;">
+<img src="_images/plantuml-b0465b52f81c1813e1eb9da615830d2c41087e49.png" alt="participant &quot;Client&quot; as C
+participant &quot;Web Service&quot; as WS
+participant &quot;Event Processor&quot; as EP
+participant &quot;Observatory&quot; as O #00FF88
+
+activate C
+C -&gt; WS: &quot;&quot;GET /foo&quot;&quot;
+activate WS
+WS --&gt; O: &quot;&quot;POST (web-server, **abcd1234**, T1)&quot;&quot;
+note left: async!
+activate O
+
+WS -&gt; EP: POST /events ...\nX-Tracing-ID: abcd1234
+note left: tracing id\nin headers
+activate EP
+EP --&gt; O: &quot;&quot;POST (event-processor, **abcd1234**, T2)&quot;&quot;
+note left: async + upstream id
+
+deactivate O
+
+WS &lt;- EP: &quot;&quot;HTTP 201 Created&quot;&quot;
+deactivate EP
+C &lt;- WS: &quot;&quot;HTTP 200 OK&quot;&quot;
+deactivate WS
+deactivate C" />
+
+</object></p>
+<div class="admonition warning" id="async-warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">Asynchronous sending</p>
+</div>
+<div class="section" id="remember-asynchrony">
+<h3>Remember asynchrony<a class="headerlink" href="#remember-asynchrony" title="Permalink to this headline">¶</a></h3>
+<p>In order to have minimum overhead, it&#8217;s important to not block when informing Observatory. In
+Pythonish pseudo-code, we could do it like this, using <a class="reference external" href="https://github.com/kennethreitz/grequests">grequests</a>:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+<span class="n">token_uuid</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid</span><span class="p">()</span>
+<span class="n">event</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;node&#39;</span><span class="p">:</span> <span class="s1">&#39;web_server&#39;</span><span class="p">,</span> <span class="s1">&#39;timestamp&#39;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span> <span class="s1">&#39;tracing_id&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">token_uuid</span><span class="p">)</span> <span class="p">}</span>
+
+<span class="c1"># non-blocking!</span>
+<span class="n">grequests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s1">&#39;http://observatory:1234/events&#39;</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">event</span><span class="p">))</span>
+
+<span class="c1"># ... blocking code ...</span>
+</pre></div>
+</div>
+<p>If you do this synchronously, you will delay the blocking code segment, but if you use asynchronous
+HTTP requests, the code will resume.</p>
+</div>
+</div>
+<div class="section" id="correlation">
+<h2>Correlation<a class="headerlink" href="#correlation" title="Permalink to this headline">¶</a></h2>
+<p>So, node <code class="docutils literal"><span class="pre">web-server</span></code> receives a HTTP request. A unique id <code class="docutils literal"><span class="pre">abcd1234</span></code> is generated. Webserver
+sends the information packet <code class="docutils literal"><span class="pre">(web-server,</span> <span class="pre">abcd1234,</span> <span class="pre">T1)</span></code> to Observatory, where <code class="docutils literal"><span class="pre">T1</span></code> is the current
+timestamp in ISO8601 format. App then sends that request downstream to a journal system, passing the
+tracing ID in a HTTP header, <code class="docutils literal"><span class="pre">X-Tracing-ID:</span> <span class="pre">abcd1234</span></code> in the HTTP request header. The <code class="docutils literal"><span class="pre">event-processor</span></code>
+system reads this header and correlates this packet by sending <code class="docutils literal"><span class="pre">(event-processor,</span> <span class="pre">abcd1234,</span> <span class="pre">T2)</span></code> to
+observatory. Now, observatory sees that these elements are part of a stream&#8212;because they share the
+tracing token&#8212;so it starts observing it, and because T2 &gt; T1, it will understand that information
+is flowing from <code class="docutils literal"><span class="pre">web-server</span></code> to <code class="docutils literal"><span class="pre">event-processor</span></code>. Now our DAG looks like this:</p>
+<object data="_images/graphviz-f42568dc798b1e8adc36a714c8e953573a6dbdc8.svg" type="image/svg+xml">
+            <p class="warning">digraph {
+  rankdir=LR;
+  &quot;web-server&quot; -&gt; &quot;event-processor&quot;[label=&quot;OK(pass=1/1 100%)&quot;, color=&quot;#00AA00&quot;];
+}</p></object>
+<p>Note that the pass label says 100% because we haven&#8217;t described a check span: how many successive
+events should we remember before determining edge health.</p>
+<div class="section" id="observation-windows">
+<h3>Observation windows<a class="headerlink" href="#observation-windows" title="Permalink to this headline">¶</a></h3>
+<p>Defining <strong>observation windows</strong> is essentially done by summing the different thresholds. If you define a
+check which has a time window of 150ms, a 85 for <code class="docutils literal"><span class="pre">OK</span></code>, 10 for <code class="docutils literal"><span class="pre">FAIL</span></code>, 5 for <code class="docutils literal"><span class="pre">WARN</span></code>, the
+following list is processed in order:</p>
+<ul class="simple">
+<li><strong>85 or more</strong> events are completed within 150ms, the edge is considered <code class="docutils literal"><span class="pre">OK</span></code></li>
+<li><strong>10 or more</strong> events do not complete within 150ms, the edge is considered <code class="docutils literal"><span class="pre">FAIL</span></code></li>
+<li><strong>5 or more</strong> events do not complete within 150s, the edge is considered <code class="docutils literal"><span class="pre">WARN</span></code></li>
+</ul>
+<p>The checks are done in reverse order, i.e. <code class="docutils literal"><span class="pre">WARN</span></code> thresholds are checked first, then <code class="docutils literal"><span class="pre">FAIL</span></code>,
+last <code class="docutils literal"><span class="pre">OK</span></code>.</p>
+<div class="figure" id="id1">
+<object data="_images/graphviz-bf88cfce03ed61d0f070412eb4921cf5cf4be282.svg" type="image/svg+xml">
+            <p class="warning">graph {
+  rankdir=LR;
+
+  edge[style=invis];
+  subgraph cluster1 {
+    label=&lt;&lt;b&gt;observation window&lt;/b&gt;&lt;br/&gt;time &amp;rarr;&gt;;
+    node [style=filled,color=&quot;#5D8AA8&quot;, fillcolor=&quot;#00AA00&quot;];
+    e2; e4; e5; e6;
+    node [style=filled,color=&quot;#5D8AA8&quot;, fillcolor=&quot;#AA0000&quot;];
+    e2 -- e3 -- e4 -- e5 -- e6
+  }
+
+  e7[label=&lt;&lt;i&gt;future&lt;br/&gt;event&lt;/i&gt;&gt;]
+  e1 -- e2
+  e6 -- e7
+
+}</p></object>
+<p class="caption"><span class="caption-text">In an observation window where the sum of thresholds is five, at the arrival of the
+sixth event (e6), event e1 is truncated out of the window.</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+<p>All of these thresholds sum to 100. This means that Observatory maintains an <em>observation window</em> of
+100 events in memory. Once the 101st event comes, the list is truncated from the start. The window
+size is simply the sum of all the thresholds.</p>
+<p>When enough observations are available, the stream is considered <em>observed</em>. This is when the edge
+status is reliable.</p>
+</div>
+<div class="section" id="reliability-considerations">
+<h3>Reliability considerations<a class="headerlink" href="#reliability-considerations" title="Permalink to this headline">¶</a></h3>
+<p>The observation window is based on strict truncation. The larger the window, the more reliable the
+observation, but it will be slow to react to changes.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="configuration.html" title="Configuration"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="glossary.html" title="Glossary"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Observatory 0.1 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2016, Antoine Kalmbach. MIT License..
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.5.1.
+    </div>
+  </body>
+</html>
