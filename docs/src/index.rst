@@ -22,7 +22,7 @@ Part I: Introduction
 ~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
 
    introduction
    overview
@@ -33,7 +33,7 @@ Part II: Architecture
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    architecture
 
