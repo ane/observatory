@@ -12,3 +12,4 @@ pom.xml.asc
 docs/build
 */target
 .idea
+project/project
