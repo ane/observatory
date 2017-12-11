@@ -1,76 +1,45 @@
-{-# LANGUAGE GADTs                 #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE PartialTypeSignatures #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Main where
 
-import           Control.Concurrent
 import           Control.Monad.Reader
 import           Control.Monad.State
-import           Control.Monad.Trans.Maybe
-import           Data.List
-import           Data.Ratio
-import           Data.String.Strip
-import qualified Data.Text                 as T
-import           Data.Time.Clock
-import           Prelude                   as P
+import qualified Data.Text.Lazy       as T
+import           GHC.Generics
+import           System.Environment
+import qualified Web.Scotty           as S
 
-data Event = Event
-  { timestamp :: UTCTime
-  , eventId   :: T.Text
-  }
+data Config = Config
+  { limit :: Int
+  } deriving (Eq, Show, Generic)
 
-data Node = Node
-  { label   :: T.Text
-  , history :: [Event]
-  }
+data AppState = AppState
+  { counter :: Int
+  } deriving (Eq, Show)
 
-data Edge = Edge
-  { src   :: T.Text
-  , dst   :: T.Text
-  , state :: [Event]
-  }
+newtype MyApp a = MyA
+  { runMyApp :: ReaderT Config (StateT AppState IO) a
+  } deriving (Functor, Applicative, Monad, MonadIO, MonadReader Config, MonadState AppState)
 
-data TimeUnit a where
-  Seconds :: Int -> TimeUnit Int
-  Milliseconds :: Int -> TimeUnit Int
-  Microseconds :: Int -> TimeUnit Int
+execApp :: MyApp a -> Int -> Int -> IO (a, AppState)
+execApp app d i =
+  let config = Config d
+      st = AppState i
+  in runStateT (runReaderT (runMyApp app) config) st
 
-data Check = Temporal (TimeUnit Int) Int Int Int
+getCounter :: MyApp Int
+getCounter = fmap counter get
 
-toMicro :: TimeUnit Int -> TimeUnit Int
-toMicro (Microseconds x) = Microseconds x
-toMicro (Seconds x)      = Microseconds (x * 100000)
-toMicro (Milliseconds x) = Microseconds (x * 1000)
+increment :: MyApp ()
+increment = do
+  s <- get
+  let curr = counter s
+  put (AppState (curr + 1))
 
-toDiffTime :: TimeUnit Int -> NominalDiffTime
-toDiffTime (Microseconds t) = fromIntegral t
-toDiffTime t                = toDiffTime . toMicro $ t
+prog2 = replicateM_ 5 increment >> getCounter
 
-data Status = OK | WARN | NOK
-
-type Checker = Check -> Status
-
-findPairs :: Node -> Node -> (Event -> Event -> Bool) -> [(Event, Event)]
-findPairs n1 n2 eq = do
-  e1 <- history n1
-  e2 <- history n2
-  if eq e1 e2 then return (e1, e2) else []
-
-runChecker :: Check -> Node -> Node -> Maybe Status
-runChecker checker n1 n2 = do
-  let pairs = findPairs n1 n2 (\e1 e2 -> eventId e1 == eventId e2)
-  guard $ not (null pairs)
-  return $
-    case checker of
-      Temporal win ok warn fail ->
-        case (length passing, length failing) of
-          (_, fc) | fail >= fc -> NOK
-          (_, fc) | warn >= fc -> WARN
-          (sc, _) | ok   >= sc -> OK
-        where
-          (passing, failing) = partition (\(e1, e2) -> toDiffTime win >= diffUTCTime (timestamp e1) (timestamp e2)) pairs
-
+main :: IO ()
 main = do
-  putStrLn "hello"
-
+  (c, _) <- execApp prog2 1 9
+  print c
