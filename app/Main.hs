@@ -5,41 +5,49 @@ module Main where
 
 import           Control.Monad.Reader
 import           Control.Monad.State
+import           Control.Concurrent.STM
 import qualified Data.Text.Lazy       as T
 import           GHC.Generics
 import           System.Environment
 import qualified Web.Scotty           as S
 
-data Config = Config
+newtype Config = Config
   { limit :: Int
   } deriving (Eq, Show, Generic)
 
-data AppState = AppState
+newtype AppState = AppState
   { counter :: Int
   } deriving (Eq, Show)
 
-newtype MyApp a = MyA
-  { runMyApp :: ReaderT Config (StateT AppState IO) a
-  } deriving (Functor, Applicative, Monad, MonadIO, MonadReader Config, MonadState AppState)
+data Env = Env
+  { envConfig :: Config
+  , envState  :: TVar AppState }
 
-execApp :: MyApp a -> Int -> Int -> IO (a, AppState)
-execApp app d i =
-  let config = Config d
-      st = AppState i
-  in runStateT (runReaderT (runMyApp app) config) st
+newtype MyApp a = MyA
+  { runMyApp :: ReaderT Env IO a
+  } deriving (Functor, Applicative, Monad, MonadIO, MonadReader Env)
+
+execApp :: MyApp a -> Int -> Int -> IO a
+execApp app d i = do
+  init <- newTVarIO (AppState i)
+  let env = Env (Config d) init
+  runReaderT (runMyApp app) env
 
 getCounter :: MyApp Int
-getCounter = fmap counter get
+getCounter = do
+  env <- ask
+  liftIO $ fmap counter (readTVarIO (envState env))
 
 increment :: MyApp ()
 increment = do
-  s <- get
-  let curr = counter s
-  put (AppState (curr + 1))
+  env <- ask
+  let currState = envState env
+  liftIO $ atomically $ modifyTVar' currState (\s -> let c = (counter s) + 1 in AppState c)
 
+prog2 :: MyApp Int
 prog2 = replicateM_ 5 increment >> getCounter
 
 main :: IO ()
 main = do
-  (c, _) <- execApp prog2 1 9
+  c <- execApp prog2 1 9
   print c
