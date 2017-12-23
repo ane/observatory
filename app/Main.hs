@@ -1,15 +1,16 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Main where
 
 import           Control.Monad.Reader
-import           Control.Monad.State
 import           Control.Concurrent.STM
 import qualified Data.Text.Lazy       as T
 import           GHC.Generics
 import           System.Environment
-import qualified Web.Scotty           as S
+import Web.Scotty
 
 newtype Config = Config
   { limit :: Int
@@ -27,12 +28,6 @@ newtype MyApp a = MyA
   { runMyApp :: ReaderT Env IO a
   } deriving (Functor, Applicative, Monad, MonadIO, MonadReader Env)
 
-execApp :: MyApp a -> Int -> Int -> IO a
-execApp app d i = do
-  init <- newTVarIO (AppState i)
-  let env = Env (Config d) init
-  runReaderT (runMyApp app) env
-
 getCounter :: MyApp Int
 getCounter = do
   env <- ask
@@ -42,12 +37,24 @@ increment :: MyApp ()
 increment = do
   env <- ask
   let currState = envState env
-  liftIO $ atomically $ modifyTVar' currState (\s -> let c = (counter s) + 1 in AppState c)
+  liftIO $ atomically $ modifyTVar' currState (\s -> AppState (counter s + 1))
 
-prog2 :: MyApp Int
-prog2 = replicateM_ 5 increment >> getCounter
+run :: MonadIO m => Env -> MyApp a -> m a
+run env prog = liftIO $ runReaderT (runMyApp prog) env
+
+runServer :: Int -> Env -> IO ()
+runServer port env = 
+  scotty port $ do
+    get "/" $ do
+      count <- run env $ increment >> getCounter
+      html $ T.pack (show count)
+
+initialize :: Int -> Int -> IO Env
+initialize m start = do
+  state <- newTVarIO (AppState start)
+  return $ Env (Config m) state
 
 main :: IO ()
 main = do
-  c <- execApp prog2 1 9
-  print c
+  env <- initialize 10 0
+  runServer 3000 env
