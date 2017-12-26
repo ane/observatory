@@ -24,7 +24,11 @@ Part I: Introduction
 ~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
+<<<<<<< HEAD
    :maxdepth: 2
+=======
+   :maxdepth: 1
+>>>>>>> hs
 
    introduction
    glossary
@@ -36,7 +40,7 @@ Part II: Architecture
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    architecture
 
