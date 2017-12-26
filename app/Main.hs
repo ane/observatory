@@ -1,16 +1,16 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DeriveGeneric              #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
 
 module Main where
 
-import           Control.Monad.Reader
 import           Control.Concurrent.STM
-import qualified Data.Text.Lazy       as T
+import           Control.Monad.Reader
+import qualified Data.Text.Lazy                       as T
 import           GHC.Generics
-import           System.Environment
-import Web.Scotty
+import           Network.Wai.Middleware.RequestLogger
+import           Prelude
+import           Web.Scotty.Trans
 
 newtype Config = Config
   { limit :: Int
@@ -36,18 +36,16 @@ getCounter = do
 increment :: MyApp ()
 increment = do
   env <- ask
-  let currState = envState env
-  liftIO $ atomically $ modifyTVar' currState (\s -> AppState (counter s + 1))
+  liftIO $ atomically $
+    modifyTVar' (envState env) (\s -> AppState (counter s + 1))
 
-run :: MonadIO m => Env -> MyApp a -> m a
-run env prog = liftIO $ runReaderT (runMyApp prog) env
-
-runServer :: Int -> Env -> IO ()
-runServer port env = 
-  scotty port $ do
-    get "/" $ do
-      count <- run env $ increment >> getCounter
-      html $ T.pack (show count)
+server :: ScottyT T.Text MyApp ()
+server = do
+  middleware logStdoutDev
+  get "/" $ do
+    c <- lift getCounter
+    _ <- lift increment
+    text $ T.pack $ show c
 
 initialize :: Int -> Int -> IO Env
 initialize m start = do
@@ -57,4 +55,4 @@ initialize m start = do
 main :: IO ()
 main = do
   env <- initialize 10 0
-  runServer 3000 env
+  scottyT 3000 (\a -> runReaderT (runMyApp a) env) server

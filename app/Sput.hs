@@ -38,14 +38,6 @@ data TimeUnit a where
 
 data Check = Temporal (TimeUnit Int) Int Int Int
 
-toMicro :: TimeUnit Int -> TimeUnit Int
-toMicro (Microseconds x) = Microseconds x
-toMicro (Seconds x)      = Microseconds (x * 100000)
-toMicro (Milliseconds x) = Microseconds (x * 1000)
-
-toDiffTime :: TimeUnit Int -> NominalDiffTime
-toDiffTime (Microseconds t) = fromIntegral t
-toDiffTime t                = toDiffTime . toMicro $ t
 
 data Status = OK | WARN | NOK
 
