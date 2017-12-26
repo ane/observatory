@@ -11,48 +11,31 @@ import           GHC.Generics
 import           Network.Wai.Middleware.RequestLogger
 import           Prelude
 import           Web.Scotty.Trans
+import           Observatory.System
+import           Observatory.Types
+import           Observatory.Edge
+import qualified Data.Map.Strict as M
+import qualified Data.Sequence as S
 
-newtype Config = Config
-  { limit :: Int
-  } deriving (Eq, Show, Generic)
-
-newtype AppState = AppState
-  { counter :: Int
-  } deriving (Eq, Show)
-
-data Env = Env
-  { envConfig :: Config
-  , envState  :: TVar AppState }
-
-newtype MyApp a = MyA
-  { runMyApp :: ReaderT Env IO a
-  } deriving (Functor, Applicative, Monad, MonadIO, MonadReader Env)
-
-getCounter :: MyApp Int
-getCounter = do
-  env <- ask
-  liftIO $ fmap counter (readTVarIO (envState env))
-
-increment :: MyApp ()
-increment = do
-  env <- ask
-  liftIO $ atomically $
-    modifyTVar' (envState env) (\s -> AppState (counter s + 1))
-
-server :: ScottyT T.Text MyApp ()
+server :: ScottyT T.Text SystemM ()
 server = do
   middleware logStdoutDev
   get "/" $ do
-    c <- lift getCounter
-    _ <- lift increment
+    c <- lift $ getStatus "a" "b"
     text $ T.pack $ show c
 
-initialize :: Int -> Int -> IO Env
-initialize m start = do
-  state <- newTVarIO (AppState start)
-  return $ Env (Config m) state
+newEdge :: IO EdgeState
+newEdge = do
+  let edge = Edge 5 3 2
+  state <- newTVarIO S.empty
+  return $ EdgeState BasicEdge edge state
+
+initialize2 :: IO System
+initialize2 = do
+  edge <- newEdge
+  return $ System $ M.fromList [((Node "a", Node "b"), edge)]
 
 main :: IO ()
 main = do
-  env <- initialize 10 0
-  scottyT 3000 (\a -> runReaderT (runMyApp a) env) server
+  env <- initialize2
+  scottyT 3000 (\a -> runReaderT (runSystemM a) env) server

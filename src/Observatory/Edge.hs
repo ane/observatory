@@ -7,17 +7,17 @@ import           Control.Monad.Reader
 import qualified Data.Sequence          as S
 import           Observatory.Types
 
-data EdgeState = EdgeConfig
+data EdgeState = EdgeState
   { kind    :: EdgeKind
   , config  :: Edge
   , history :: TVar (S.Seq EdgeEvent)
-  }
+  } 
 
 newtype EdgeM a = EdgeM
   { runEdgeM :: ReaderT EdgeState IO a
   } deriving (Functor, Applicative, Monad, MonadIO, MonadReader EdgeState)
 
-data Status = OK | Warn | Fail
+data Status = OK | Warn | Fail deriving Show
 
 partition :: EdgeM (Int, Int)
 partition = do
@@ -44,11 +44,11 @@ minimumNeeded state =
   let cfg = config state in
     okThreshold cfg + warnThreshold cfg + failThreshold cfg
 
-update :: EdgeEvent -> EdgeM (STM ())
+update :: EdgeEvent -> EdgeM ()
 update event = do
   state <- ask
-  return $ 
-    modifyTVar (history state) $
+  liftIO $ atomically $
+    modifyTVar' (history state) $
       \events ->
         if length events == minimumNeeded state
           then S.drop 1 events S.|> event

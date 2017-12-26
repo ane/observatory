@@ -3,16 +3,57 @@
 module Observatory.System where
 
 import           Control.Concurrent
+import           Control.Concurrent.STM
 import           Control.Monad.Reader
-import           Data.Map           as M
+import Control.Monad.Trans.Maybe
+import           Data.List
+import qualified Data.Map.Strict      as M
+import           Data.Maybe
+import qualified Data.Text.Lazy       as T
 import           Observatory.Edge
 import           Observatory.Types
 
+type SystemData = M.Map (Node, Node) EdgeState
+
 data System = System
-  { edges  :: M.Map (Node, Node) EdgeState,
-    worker :: IO ThreadId
+  { edges  :: SystemData
   }
 
 newtype SystemM a = SysM
   { runSystemM :: ReaderT System IO a }
   deriving (Functor, Applicative, Monad, MonadIO, MonadReader System)
+
+data NodeEvent = NodeEvent
+  { sourceName :: T.Text
+  , targetName :: T.Text
+  , edgeEvent  :: EdgeEvent }
+
+
+findEdgeBy :: (Node -> Node -> Bool) -> SystemM (Maybe EdgeState)
+findEdgeBy f = do
+  sys <- ask
+  return $ listToMaybe $ take 1 $ M.elems $
+    M.filterWithKey (\(s, t) _ -> f s t) (edges sys)
+
+edgeM :: EdgeState -> EdgeM a -> IO a
+edgeM state c = flip runReaderT state $ runEdgeM c
+
+fromNodeEvent :: NodeEvent -> Node -> Node -> Bool
+fromNodeEvent a n1 n2 = sourceName a == name n1 && targetName a == name n2
+
+fromSrcDstPair :: T.Text -> T.Text -> Node -> Node -> Bool
+fromSrcDstPair s d a b = s == name a && d == name b
+
+withEdgeM :: (Node -> Node -> Bool) -> EdgeM a -> SystemM a
+withEdgeM f c = do
+  s <- findEdgeBy f
+  case s of
+    Just state -> liftIO $ edgeM state c
+    Nothing -> liftIO mzero
+
+dispatch :: NodeEvent -> SystemM ()
+dispatch e = withEdgeM (fromNodeEvent e) $ update (edgeEvent e)
+
+getStatus :: T.Text -> T.Text -> SystemM (Maybe Status)
+getStatus source destination = 
+  withEdgeM (fromSrcDstPair source destination) status

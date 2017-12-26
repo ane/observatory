@@ -5,7 +5,7 @@ module Observatory.Types where
 import           Data.Text.Lazy  as T
 import           Data.Time.Clock
 
-data Node = Node { label :: T.Text }
+data Node = Node { name :: T.Text } deriving (Eq, Ord, Show)
 
 data Event = Event
   { eventAt :: UTCTime
@@ -18,16 +18,9 @@ data Edge = Edge
   , failThreshold :: Int
   }
 
-class Timestamped a where
-  timestamp :: a -> UTCTime
-
 data EdgeEvent =
-    BasicEvent { success :: Bool, at :: UTCTime }
-  | TemporalEvent { duration :: NominalDiffTime, when :: UTCTime }
-
-instance Timestamped EdgeEvent where
-  timestamp (BasicEvent _ x)    = x
-  timestamp (TemporalEvent _ x) = x
+    BasicEvent { success :: Bool, base :: Event }
+  | TemporalEvent { duration :: NominalDiffTime, base :: Event }
 
 data EdgeKind = BasicEdge | TemporalEdge { window :: TimeUnit Int }
 
