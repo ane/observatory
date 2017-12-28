@@ -58,10 +58,10 @@ getStatus :: T.Text -> T.Text -> SystemM (STM (Maybe Status))
 getStatus source destination = 
   withEdgeM (fromSrcDstPair source destination) status
 
-enqueue :: NodeEvent -> SystemM ()
+enqueue :: NodeEvent -> SystemM (STM ())
 enqueue ev = do
   sys <- ask
-  liftIO $ atomically $ writeTQueue (queue sys) ev
+  return $ writeTQueue (queue sys) ev
 
 runWorker :: System -> IO ThreadId
 runWorker sys = forkIO $ do

@@ -24,9 +24,12 @@ server = do
   get "/" $ do
     ev <- liftIO $ newEventNow "aaa"
     let ee = BasicEvent True ev
-    lift $ enqueue $ NodeEvent "a" "b" ee
-    c <- lift $ getStatus "a" "b"
-    s <- liftIO $ atomically c
+    doEnqueue <- lift $ enqueue $ NodeEvent "a" "b" ee
+    edgeStatus <- lift $ getStatus "a" "b"
+    s <- liftIO $ atomically $ do
+      res <- edgeStatus -- get status first, so that the current request
+      doEnqueue         -- doesn't affect the result
+      return res
     text $ T.pack $ show s
 
 newEventNow id = do
