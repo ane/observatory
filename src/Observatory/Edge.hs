@@ -11,20 +11,18 @@ data EdgeState = EdgeState
   { kind    :: EdgeKind
   , config  :: Edge
   , history :: TVar (S.Seq EdgeEvent)
-  } 
+  }
 
-newtype EdgeM a = EdgeM
-  { runEdgeM :: ReaderT EdgeState IO a
-  } deriving (Functor, Applicative, Monad, MonadIO, MonadReader EdgeState)
+type EdgeM a = ReaderT EdgeState STM a
 
 data Status = OK | Warn | Fail deriving Show
 
-partition :: EdgeM (Int, Int)
+partition :: ReaderT EdgeState STM (Int, Int)
 partition = do
   state <- ask
-  hist <- liftIO $ readTVarIO $ history state
-  return $
-    foldl (\(s,f) event ->
+  lift $ do
+    hist <- readTVar $ history state
+    return $ foldl (\(s,f) event ->
             case event of
               BasicEvent succeeded _ ->
                 if succeeded then (s + 1, f) else (s, f + 1)
@@ -37,7 +35,7 @@ partition = do
          hist
 
 getHistory :: EdgeM (S.Seq EdgeEvent)
-getHistory = ask >>= \s -> liftIO $ readTVarIO $ history s
+getHistory = ask >>= \s -> lift $ readTVar $ history s
 
 minimumNeeded :: EdgeState -> Int
 minimumNeeded state =
@@ -47,29 +45,30 @@ minimumNeeded state =
 update :: EdgeEvent -> EdgeM ()
 update event = do
   state <- ask
-  liftIO $ atomically $
-    modifyTVar' (history state) $
-      \events ->
-        if length events == minimumNeeded state
-          then S.drop 1 events S.|> event
-          else events S.|> event
+  lift $ modifyTVar' (history state) $
+    \events ->
+      if length events == minimumNeeded state
+        then S.drop 1 events S.|> event
+        else events S.|> event
 
 status :: EdgeM (Maybe Status)
 status = do
   state <- ask
   (_, f) <- partition
-  hist <- liftIO $ readTVarIO $ history state
+  hist <- lift $ readTVar $ history state
   let eventCount = length hist
       needed = minimumNeeded state
       c = config state
-  return $ do
-    guard $ eventCount >= needed
-    return $
-      if f >= failThreshold c
-        then Fail
-        else if f >= warnThreshold c
-          then Warn
-          else OK
+    -- guard $ eventCount >= needed
+  return $
+    if eventCount >= needed
+    then Just $ 
+           if f >= failThreshold c
+           then Fail
+           else if f >= warnThreshold c
+                then Warn
+                else OK
+    else Nothing
 
 
 

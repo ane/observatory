@@ -10,7 +10,7 @@ data Node = Node { name :: T.Text } deriving (Eq, Ord, Show)
 data Event = Event
   { eventAt :: UTCTime
   , eventId :: T.Text
-  }
+  } deriving Show
 
 data Edge = Edge
   { okThreshold   :: Int
@@ -21,6 +21,7 @@ data Edge = Edge
 data EdgeEvent =
     BasicEvent { success :: Bool, base :: Event }
   | TemporalEvent { duration :: NominalDiffTime, base :: Event }
+  deriving Show
 
 data EdgeKind = BasicEdge | TemporalEdge { window :: TimeUnit Int }
 

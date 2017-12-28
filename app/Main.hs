@@ -16,13 +16,22 @@ import           Observatory.Types
 import           Observatory.Edge
 import qualified Data.Map.Strict as M
 import qualified Data.Sequence as S
+import           Data.Time.Clock
 
 server :: ScottyT T.Text SystemM ()
 server = do
   middleware logStdoutDev
   get "/" $ do
+    ev <- liftIO $ newEventNow "aaa"
+    let ee = BasicEvent True ev
+    lift $ enqueue $ NodeEvent "a" "b" ee
     c <- lift $ getStatus "a" "b"
-    text $ T.pack $ show c
+    s <- liftIO $ atomically c
+    text $ T.pack $ show s
+
+newEventNow id = do
+  now <- getCurrentTime
+  return $ Event now id
 
 newEdge :: IO EdgeState
 newEdge = do
@@ -33,7 +42,10 @@ newEdge = do
 initialize2 :: IO System
 initialize2 = do
   edge <- newEdge
-  return $ System $ M.fromList [((Node "a", Node "b"), edge)]
+  q <- newTQueueIO
+  let sys = System (M.fromList [((Node "a", Node "b"), edge)]) q
+  _ <- runWorker sys
+  return sys
 
 main :: IO ()
 main = do

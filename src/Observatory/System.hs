@@ -17,6 +17,7 @@ type SystemData = M.Map (Node, Node) EdgeState
 
 data System = System
   { edges  :: SystemData
+  , queue  :: TQueue NodeEvent
   }
 
 newtype SystemM a = SysM
@@ -26,8 +27,7 @@ newtype SystemM a = SysM
 data NodeEvent = NodeEvent
   { sourceName :: T.Text
   , targetName :: T.Text
-  , edgeEvent  :: EdgeEvent }
-
+  , edgeEvent  :: EdgeEvent } deriving Show
 
 findEdgeBy :: (Node -> Node -> Bool) -> SystemM (Maybe EdgeState)
 findEdgeBy f = do
@@ -35,8 +35,8 @@ findEdgeBy f = do
   return $ listToMaybe $ take 1 $ M.elems $
     M.filterWithKey (\(s, t) _ -> f s t) (edges sys)
 
-edgeM :: EdgeState -> EdgeM a -> IO a
-edgeM state c = flip runReaderT state $ runEdgeM c
+edgeM :: EdgeState -> EdgeM a -> STM a
+edgeM state c = runReaderT c state
 
 fromNodeEvent :: NodeEvent -> Node -> Node -> Bool
 fromNodeEvent a n1 n2 = sourceName a == name n1 && targetName a == name n2
@@ -44,16 +44,34 @@ fromNodeEvent a n1 n2 = sourceName a == name n1 && targetName a == name n2
 fromSrcDstPair :: T.Text -> T.Text -> Node -> Node -> Bool
 fromSrcDstPair s d a b = s == name a && d == name b
 
-withEdgeM :: (Node -> Node -> Bool) -> EdgeM a -> SystemM a
+withEdgeM :: (Node -> Node -> Bool) -> EdgeM a -> SystemM (STM a)
 withEdgeM f c = do
   s <- findEdgeBy f
   case s of
-    Just state -> liftIO $ edgeM state c
+    Just state -> return $ edgeM state c
     Nothing -> liftIO mzero
 
-dispatch :: NodeEvent -> SystemM ()
+dispatch :: NodeEvent -> SystemM (STM ())
 dispatch e = withEdgeM (fromNodeEvent e) $ update (edgeEvent e)
 
-getStatus :: T.Text -> T.Text -> SystemM (Maybe Status)
+getStatus :: T.Text -> T.Text -> SystemM (STM (Maybe Status))
 getStatus source destination = 
   withEdgeM (fromSrcDstPair source destination) status
+
+enqueue :: NodeEvent -> SystemM ()
+enqueue ev = do
+  sys <- ask
+  liftIO $ atomically $ writeTQueue (queue sys) ev
+
+runWorker :: System -> IO ThreadId
+runWorker sys = forkIO $ do
+  work <- atomically $ readTQueue (queue sys)
+  loop work sys
+ where
+   loop work s = do
+     putStrLn $ "Received " ++ show work
+     action <- runReaderT (runSystemM $ dispatch work) s
+     nxt <- atomically $ do
+       _ <- action            -- ensure that dispatching the event
+       readTQueue (queue s)   -- and dequeuing succeeds in the same transaction
+     loop nxt s
