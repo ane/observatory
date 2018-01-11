@@ -71,7 +71,5 @@ runWorker sys = forkIO $ do
    loop work s = do
      putStrLn $ "Received " ++ show work
      action <- runReaderT (runSystemM $ dispatch work) s
-     nxt <- atomically $ do
-       _ <- action            -- ensure that dispatching the event
-       readTQueue (queue s)   -- and dequeuing succeeds in the same transaction
+     nxt <- atomically $ action >> readTQueue (queue s)
      loop nxt s

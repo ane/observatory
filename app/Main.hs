@@ -6,17 +6,17 @@ module Main where
 
 import           Control.Concurrent.STM
 import           Control.Monad.Reader
+import qualified Data.Map.Strict                      as M
+import qualified Data.Sequence                        as S
 import qualified Data.Text.Lazy                       as T
+import           Data.Time.Clock
 import           GHC.Generics
 import           Network.Wai.Middleware.RequestLogger
-import           Prelude
-import           Web.Scotty.Trans
+import           Observatory.Edge
 import           Observatory.System
 import           Observatory.Types
-import           Observatory.Edge
-import qualified Data.Map.Strict as M
-import qualified Data.Sequence as S
-import           Data.Time.Clock
+import           Prelude
+import           Web.Scotty.Trans
 
 server :: ScottyT T.Text SystemM ()
 server = do
@@ -26,21 +26,19 @@ server = do
     let ee = BasicEvent True ev
     doEnqueue <- lift $ enqueue $ NodeEvent "a" "b" ee
     edgeStatus <- lift $ getStatus "a" "b"
-    s <- liftIO $ atomically $ do
-      res <- edgeStatus -- get status first, so that the current request
-      doEnqueue         -- doesn't affect the result
-      return res
+    s <- liftIO $ atomically $ edgeStatus <* doEnqueue
     text $ T.pack $ show s
+  get "/fail" $ do
+    ev <- liftIO $ newEventNow "aaa"
+    action <- lift $ enqueue $ NodeEvent "a" "b" (BasicEvent False ev)
+    liftIO $ atomically action
+    redirect "/"
 
-newEventNow id = do
-  now <- getCurrentTime
-  return $ Event now id
+newEventNow :: T.Text -> IO Event
+newEventNow uniqid = fmap (\t -> Event t uniqid) getCurrentTime
 
 newEdge :: IO EdgeState
-newEdge = do
-  let edge = Edge 5 3 2
-  state <- newTVarIO S.empty
-  return $ EdgeState BasicEdge edge state
+newEdge = EdgeState BasicEdge (Edge 5 3 2) <$> newTVarIO S.empty
 
 initialize2 :: IO System
 initialize2 = do
